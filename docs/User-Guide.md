@@ -20,10 +20,6 @@ libraries might vary depending on the OS version and distribution you are
 using.
 Yarn, HDFS, Spark installation and configuration is out of the scope of this document.
 
-## Online Documentation
-
-You can find the all the PMem Shuffle documents on the [project web page](https://oap-project.github.io/pmem-shuffle/).
-
 
 ## <a id="pmem-shuffle-introduction"></a>1. PMem Shuffle introduction
 
@@ -56,7 +52,7 @@ The Figure 1 shows the high level architecture of PMem Shuffle, it shows how dat
 PMem Shuffle for spark shuffle and Vanilla Spark. In this guide, we
 will introduce how to deploy and use PMem Shuffle for Spark.
 
-![architecture](./docs/image/RPMem_shuffle_architecture.png)
+![architecture](./image/RPMem_shuffle_architecture.png)
 
 Figure 1: PMem Shuffle for Spark
 
@@ -346,7 +342,7 @@ Please refer to your NIC manuual for detail instructions on how to validate RDMA
 ## <a id="install-dependencies-for-pmem-shuffle"></a>5. Install dependencies for PMem Shuffle
 --------------------------- 
 
-We have provided a Conda package which will automatically install dependencies needed for PMem Shuffle, refer to [OAP-Installation-Guide](./docs/OAP-Installation-Guide.md) for more information. If you have finished [OAP-Installation-Guide](./docs/OAP-Installation-Guide.md), you can find compiled OAP jars in `$HOME/miniconda2/envs/oapenv/oap_jars/`,  and skip this session and jump to [6.Install PMem Shuffle for Spark](#install-pmem-shuffle-for-spark)
+We have provided a Conda package which will automatically install dependencies needed for PMem Shuffle, refer to [OAP-Installation-Guide](./OAP-Installation-Guide.md) for more information. If you have finished [OAP-Installation-Guide](./OAP-Installation-Guide.md), you can find compiled OAP jars in `$HOME/miniconda2/envs/oapenv/oap_jars/`,  and skip this session and jump to [6.Install PMem Shuffle for Spark](#install-pmem-shuffle-for-spark)
 
 ### 5.1 Install HPNL (<https://github.com/Intel-bigdata/HPNL>)
 
