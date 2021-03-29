@@ -30,13 +30,16 @@ JNIEXPORT jlongArray JNICALL Java_org_apache_spark_storage_pmof_PersistentMemory
   uint64_t size = 0;
   pmkv->get_meta_size(key_str, &size);
   struct memory_meta* mm = (struct memory_meta*)std::malloc(sizeof(struct memory_meta));
-  mm->meta = (uint64_t*)std::malloc(size*2*sizeof(uint64_t));
-  pmkv->get_meta(key_str, mm);
-  jlongArray data = env->NewLongArray(mm->length);
-  env->SetLongArrayRegion(data, 0, mm->length, (jlong*)mm->meta);
-  std::free(mm->meta);
-  std::free(mm);
-  return data;
+  if(mm != nullptr){
+    mm->meta = (uint64_t*)std::malloc(size*2*sizeof(uint64_t));
+    pmkv->get_meta(key_str, mm);
+    jlongArray data = env->NewLongArray(mm->length);
+    env->SetLongArrayRegion(data, 0, mm->length, (jlong*)mm->meta);
+    std::free(mm->meta);
+    std::free(mm);
+    return data;
+  }
+  return nullptr;
 }
 
 JNIEXPORT jlong JNICALL Java_org_apache_spark_storage_pmof_PersistentMemoryPool_nativeGetBlockSize
@@ -61,8 +64,9 @@ JNIEXPORT jlong JNICALL Java_org_apache_spark_storage_pmof_PersistentMemoryPool_
 JNIEXPORT jint JNICALL Java_org_apache_spark_storage_pmof_PersistentMemoryPool_nativeCloseDevice
   (JNIEnv *env, jclass obj, jlong kv) {
   pmemkv *pmkv = static_cast<pmemkv*>((void*)kv);
-  pmkv->free_all();
+  long result = pmkv->free_all();
   delete pmkv;
+  return result;
 }
 
 JNIEXPORT jlong JNICALL Java_org_apache_spark_storage_pmof_PersistentMemoryPool_nativeGetRoot
@@ -110,7 +114,8 @@ JNIEXPORT jint JNICALL Java_org_apache_spark_storage_pmof_PmemBuffer_nativeWrite
 
 JNIEXPORT jint JNICALL Java_org_apache_spark_storage_pmof_PmemBuffer_nativeGetPmemBufferRemaining
   (JNIEnv *env, jobject obj, jlong pmBuffer) {
-  ((PmemBuffer*)pmBuffer)->getRemaining();
+  int remaining = ((PmemBuffer*)pmBuffer)->getRemaining();
+  return remaining;
 }
 
 JNIEXPORT jlong JNICALL Java_org_apache_spark_storage_pmof_PmemBuffer_nativeGetPmemBufferDataAddr
@@ -121,6 +126,7 @@ JNIEXPORT jlong JNICALL Java_org_apache_spark_storage_pmof_PmemBuffer_nativeGetP
 JNIEXPORT jint JNICALL Java_org_apache_spark_storage_pmof_PmemBuffer_nativeCleanPmemBuffer
   (JNIEnv *env, jobject obj, jlong pmBuffer) {
   ((PmemBuffer*)pmBuffer)->clean();
+  return 0;
 }
 
 JNIEXPORT jint JNICALL Java_org_apache_spark_storage_pmof_PmemBuffer_nativeDeletePmemBuffer
