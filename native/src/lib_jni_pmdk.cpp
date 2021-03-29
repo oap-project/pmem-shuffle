@@ -114,7 +114,8 @@ JNIEXPORT jint JNICALL Java_org_apache_spark_storage_pmof_PmemBuffer_nativeWrite
 
 JNIEXPORT jint JNICALL Java_org_apache_spark_storage_pmof_PmemBuffer_nativeGetPmemBufferRemaining
   (JNIEnv *env, jobject obj, jlong pmBuffer) {
-  ((PmemBuffer*)pmBuffer)->getRemaining();
+  int remaining = ((PmemBuffer*)pmBuffer)->getRemaining();
+  return remaining;
 }
 
 JNIEXPORT jlong JNICALL Java_org_apache_spark_storage_pmof_PmemBuffer_nativeGetPmemBufferDataAddr
