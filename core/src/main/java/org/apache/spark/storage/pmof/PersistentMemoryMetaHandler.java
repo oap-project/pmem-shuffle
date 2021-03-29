@@ -68,6 +68,10 @@ public class PersistentMemoryMetaHandler {
         if (fl != null) {
           fl.release();
         }
+      }catch(IOException e){
+        e.printStackTrace();
+      }
+      try{
         if (fos != null) {
           fos.close();
         }
@@ -113,6 +117,10 @@ public class PersistentMemoryMetaHandler {
         if (fl != null) {
           fl.release();
         }
+      }catch(IOException e){
+        e.printStackTrace();
+      }
+      try{
         if (fos != null) {
           fos.close();
         }
@@ -165,6 +173,10 @@ public class PersistentMemoryMetaHandler {
         if (fl != null) {
           fl.release();
         }
+      }catch(IOException e){
+        e.printStackTrace();
+      }
+      try{
         if (fos != null) {
           fos.close();
         }
@@ -242,6 +254,10 @@ public class PersistentMemoryMetaHandler {
         if (fl != null) {
           fl.release();
         }
+      }catch(IOException e){
+        e.printStackTrace();
+      }
+      try{
         if (fos != null) {
           fos.close();
         }
