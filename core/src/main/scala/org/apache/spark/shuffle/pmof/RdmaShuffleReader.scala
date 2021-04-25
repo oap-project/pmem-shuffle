@@ -17,6 +17,8 @@ import org.apache.spark.util.configuration.pmof.PmofConf
   * requesting them from other nodes' block stores.
   */
 private[spark] class RdmaShuffleReader[K, C](handle: BaseShuffleHandle[K, _, C],
+                                             startMapIndex: Int,
+                                             endMapIndex: Int,
                                              startPartition: Int,
                                              endPartition: Int,
                                              context: TaskContext,
@@ -36,7 +38,7 @@ private[spark] class RdmaShuffleReader[K, C](handle: BaseShuffleHandle[K, _, C],
       context,
       PmofTransferService.getTransferServiceInstance(pmofConf, blockManager),
       blockManager,
-      mapOutputTracker.getMapSizesByExecutorId(handle.shuffleId, startPartition, endPartition),
+      mapOutputTracker.getMapSizesByExecutorId(handle.shuffleId, startMapIndex, endMapIndex, startPartition, endPartition),
       serializerManager.wrapStream,
       // Note: we use getSizeAsMb when no suffix is provided for backwards compatibility
       SparkEnv.get.conf.getSizeAsMb("spark.reducer.maxSizeInFlight", "48m") * 1024 * 1024,

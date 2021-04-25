@@ -18,7 +18,10 @@ import org.apache.spark.util.configuration.pmof.PmofConf
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
+import scala.util.control.Breaks._
+
 private[spark] class PersistentMemoryHandler(
+    val pmofConf: PmofConf,
     val root_dir: String,
     val path_list: List[String],
     val shuffleId: String,
@@ -87,21 +90,45 @@ private[spark] class PersistentMemoryHandler(
   def getPartitionManagedBuffer(blockId: String): ManagedBuffer = {
     new PmemManagedBuffer(this, blockId)
   }
+  
+  def fileDeletion(path: String): Unit = synchronized {
+    try {
+      if (new File(path).delete()) {
+        logInfo("File deleted successfully: " + poolFile)
+      } else {
+        logWarning("Failed to delete file: " + poolFile)
+      }
+      } catch {
+        case e: Exception => e.printStackTrace()
+      }
+  }
 
   def close(): Unit = synchronized {
+    val timeout = pmofConf.fileEmptyTimeout
+    val interval = pmofConf.fileEmptyInterval
+    val startTime = System.currentTimeMillis()
+    var first = true
       if (isFsdaxFile) {
-        try {
-          if (new File(poolFile).delete()) {
-            logInfo("File deleted successfully: " + poolFile)
-          } else {
-            logWarning("Failed to delete file: " + poolFile)
+        var currentTime = System.currentTimeMillis()
+        breakable{
+          while(currentTime - startTime < timeout * 1000){
+            if(!Files.exists(Paths.get(poolFile))){
+              break
+            }
+            if (!first){
+              /**
+              The slept thread will be terminated immediately
+              Thread.sleep(interval * 1000)
+              **/
+            }
+            fileDeletion(poolFile)
+            currentTime = System.currentTimeMillis()
+            first = false
           }
-        } catch {
-          case e: Exception => e.printStackTrace()
-        }
+        } 
       } else {
-        pmpool.close()
         pmMetaHandler.remove()
+        Runtime.getRuntime.exec("pmempool rm " + poolFile)
       }
   }
 
@@ -119,7 +146,7 @@ object PersistentMemoryHandler {
   private var stopped: Boolean = _
   def getPersistentMemoryHandler(pmofConf: PmofConf, root_dir: String, path_arg: List[String], shuffleBlockId: String, pmPoolSize: Long): PersistentMemoryHandler = synchronized {
     if (persistentMemoryHandler == null) {
-      persistentMemoryHandler = new PersistentMemoryHandler(root_dir, path_arg, shuffleBlockId, pmPoolSize)
+      persistentMemoryHandler = new PersistentMemoryHandler(pmofConf, root_dir, path_arg, shuffleBlockId, pmPoolSize)
       persistentMemoryHandler.log("Use persistentMemoryHandler Object: " + this)
       if (pmofConf.enableRdma) {
         val blockManager = SparkEnv.get.blockManager
