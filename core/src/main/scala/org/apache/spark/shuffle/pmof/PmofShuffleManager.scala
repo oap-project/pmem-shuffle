@@ -59,12 +59,12 @@ private[spark] class PmofShuffleManager(conf: SparkConf) extends ShuffleManager 
     }
   }
 
-  override def getReader[K, C](handle: _root_.org.apache.spark.shuffle.ShuffleHandle, startPartition: Int, endPartition: Int, context: _root_.org.apache.spark.TaskContext, readMetrics: ShuffleReadMetricsReporter): _root_.org.apache.spark.shuffle.ShuffleReader[K, C] = {
+  override def getReader[K, C](handle: _root_.org.apache.spark.shuffle.ShuffleHandle, startMapIndex: Int, endMapIndex: Int, startPartition: Int, endPartition: Int, context: _root_.org.apache.spark.TaskContext, readMetrics: ShuffleReadMetricsReporter): _root_.org.apache.spark.shuffle.ShuffleReader[K, C] = {
     val blocksByAddress = SparkEnv.get.mapOutputTracker.getMapSizesByExecutorId(
-      handle.shuffleId, startPartition, endPartition)
+      handle.shuffleId, startMapIndex, endMapIndex, startPartition, endPartition)
     if (pmofConf.enableRdma) {
       new RdmaShuffleReader(handle.asInstanceOf[BaseShuffleHandle[K, _, C]],
-        startPartition, endPartition, context, pmofConf)
+        startMapIndex, endMapIndex, startPartition, endPartition, context, pmofConf)
     } else {
       new BaseShuffleReader(
         handle.asInstanceOf[BaseShuffleHandle[K, _, C]], blocksByAddress, startPartition, endPartition, context, readMetrics, pmofConf)
@@ -100,5 +100,4 @@ private[spark] class PmofShuffleManager(conf: SparkConf) extends ShuffleManager 
       new IndexShuffleBlockResolver(conf)
   }
 
-  override def getReaderForRange[K, C](handle: ShuffleHandle, startMapIndex: Int, endMapIndex: Int, startPartition: Int, endPartition: Int, context: TaskContext, metrics: ShuffleReadMetricsReporter): ShuffleReader[K, C] = ???
 }
