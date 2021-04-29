@@ -8,6 +8,7 @@
 [5. Install dependencies for PMem Shuffle](#install-dependencies-for-pmem-shuffle)  
 [6. Install PMem Shuffle for Spark](#install-pmem-shuffle-for-spark)  
 [7. PMem Shuffle for Spark Testing](#pmem-shuffle-for-spark-testing)  
+[8. Trouble Shooting](#trouble-shooting)  
 [Reference](#reference)   
 
 
@@ -127,6 +128,28 @@ installation/enabling or FW installation is out of the scope of this guide.
         /dev/dax1.1 in that node, and it will be used as PMem Shuffle media. 
 
         You can change your configuration (namespaces numbers, size) accordingly.
+6)  Step 5 is required only when running this solution over RDMA is considered.  Otherwise PMem can be initialized in fsdax mode.  
+    a.  Run *ndctl create-namespace -m fsdax -r region0 -s 120g*  
+    b.  Run *ndctl create-namespace -m fsdax -r region0 -s 120g*  
+    c.  Run *ndctl create-namespace -m fsdax -r region1 -s 120g*  
+    d.  Run *ndctl create-namespace -m fsdax -r region1 -s 120g*  
+    Four namespaces /dev/pmem0, /dev/pmem0.1, /dev/pmem1, /dev/pmem1.1 are created. Note that the namespace name might vary due to existing namespaces. In general, the name is consistent with the pattern /dev/pmem*.     
+
+    After creating the namespace in fsdax mode, the namespace is ready for a file system. Here we use Ext4 file system in enabling. 
+    e.  mkfs.ext4 /dev/pmem0  
+    f.  mkfs.ext4 /dev/pmem0.1  
+    g.  mkfs.ext4 /dev/pmem1  
+    h.  mkfs.ext4 /dev/pmem1.1  
+
+    Create directories and mount file system to them. To get the DAX functionality, mount the file system with dax option.   
+
+    i.  mkdir /mnt/pmem0 && mount -o dax /dev/pmem0 /mnt/pmem0  
+    j.  mkdir /mnt/pmem0.1 && mount -o dax /dev/pmem0.1 /mnt/pmem0.1  
+    k.  mkdir /mnt/pmem1 && mount -o dax /dev/pmem1 /mnt/pmem1  
+    l.  mkdir /mnt/pmem1.1 && mount -o dax /dev/pmem1.1 /mnt/pmem1.1  
+
+    Change configurations accordingly. 
+
 
 ## <a id="configure-and-validate-rdma"></a>4. Configure and Validate RDMA
 ------------------------
@@ -547,6 +570,13 @@ spark.driver.rhost                                              $IP //change to 
 spark.driver.rport                                              61000
 
 ```
+
+**FSDAX**
+Use `spark.shuffle.pmof.pmpool_size` to specify the size of created shuffle file. The size should obey the rule: `max(spark.shuffle.pmof.pmpool_size) < size_of_namespace * 0.9`. It's because we need to reserve some space in fsdax namespace for meta data. 
+
+**Misc**  
+The config `spark.sql.shuffle.partitions` is required to set explicitly, it's suggested to  use default value `200` unless you're pretty sure what's the meaning of this value. 
+
 ## <a id="pmem-shuffle-for-spark-testing"></a>7. PMem Shuffle for Spark Testing 
 -----------------------------
 
@@ -751,6 +781,15 @@ spark.driver.rhost                                          $IP //change to your
 spark.driver.rport                                          61000
 
 ```
+
+## <a id="trouble-shooting"></a>8. Trouble shooting
+For any reason that a previous job is failed, please empty PMem spaces before another run.  
+It's because normal space release operation might fail to be invoked for failed jobs.  
+
+For devdax, use `pmempool rm {devdax-namespace}` to reset the entire namespace.    
+For fsdax, use `rm -rf {mounted-pmem-folder}/shuffle_block*` to remove corresponding shuffle pool files.  
+
+
 ### Reference guides (without BKC access)
 -----------------------------------
 If you do not have BKC access, please following below official guide:
