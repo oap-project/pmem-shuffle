@@ -160,6 +160,10 @@
         <ul>
     <li class="toctree-l3"><a class="reference internal" href="#rpmemshuffle-spark-configuration">RPMemShuffle Spark configuration</a>
     </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#8-trouble-shooting">8. Trouble shooting</a>
+        <ul>
     <li class="toctree-l3"><a class="reference internal" href="#reference-guides-without-bkc-access">Reference guides (without BKC access)</a>
     </li>
         </ul>
@@ -219,6 +223,7 @@
 <a href="#install-dependencies-for-pmem-shuffle">5. Install dependencies for PMem Shuffle</a><br />
 <a href="#install-pmem-shuffle-for-spark">6. Install PMem Shuffle for Spark</a><br />
 <a href="#pmem-shuffle-for-spark-testing">7. PMem Shuffle for Spark Testing</a><br />
+<a href="#trouble-shooting">8. Trouble Shooting</a><br />
 <a href="#reference">Reference</a>   </p>
 <p>PMem Shuffle for Spark (previously Spark-PMoF) depends on multiple
 native libraries like libfabrics, libcuckoo, PMDK. This enabling guide
@@ -315,6 +320,27 @@ installation/enabling or FW installation is out of the scope of this guide.</p>
     This will create four namespaces, namely /dev/dax0.0, /dev/dax0.1, /dev/dax1.0,
         /dev/dax1.1 in that node, and it will be used as PMem Shuffle media. </p>
 <pre><code>    You can change your configuration (namespaces numbers, size) accordingly.
+</code></pre>
+<p>6)  Step 5 is required only when running this solution over RDMA is considered.  Otherwise PMem can be initialized in fsdax mode.<br />
+    a.  Run <em>ndctl create-namespace -m fsdax -r region0 -s 120g</em><br />
+    b.  Run <em>ndctl create-namespace -m fsdax -r region0 -s 120g</em><br />
+    c.  Run <em>ndctl create-namespace -m fsdax -r region1 -s 120g</em><br />
+    d.  Run <em>ndctl create-namespace -m fsdax -r region1 -s 120g</em><br />
+    Four namespaces /dev/pmem0, /dev/pmem0.1, /dev/pmem1, /dev/pmem1.1 are created. Note that the namespace name might vary due to existing namespaces. In general, the name is consistent with the pattern /dev/pmem*.     </p>
+<pre><code>After creating the namespace in fsdax mode, the namespace is ready for a file system. Here we use Ext4 file system in enabling. 
+e.  mkfs.ext4 /dev/pmem0  
+f.  mkfs.ext4 /dev/pmem0.1  
+g.  mkfs.ext4 /dev/pmem1  
+h.  mkfs.ext4 /dev/pmem1.1
+
+Create directories and mount file system to them. To get the DAX functionality, mount the file system with dax option.
+
+i.  mkdir /mnt/pmem0 &amp;&amp; mount -o dax /dev/pmem0 /mnt/pmem0  
+j.  mkdir /mnt/pmem0.1 &amp;&amp; mount -o dax /dev/pmem0.1 /mnt/pmem0.1  
+k.  mkdir /mnt/pmem1 &amp;&amp; mount -o dax /dev/pmem1 /mnt/pmem1  
+l.  mkdir /mnt/pmem1.1 &amp;&amp; mount -o dax /dev/pmem1.1 /mnt/pmem1.1
+
+Change configurations accordingly.
 </code></pre>
 <h2 id="4-configure-and-validate-rdma"><a id="configure-and-validate-rdma"></a>4. Configure and Validate RDMA</h2>
 <hr />
@@ -685,6 +711,10 @@ spark.driver.rport                                              61000
 
 </code></pre>
 
+<p><strong>FSDAX</strong>
+Use <code>spark.shuffle.pmof.pmpool_size</code> to specify the size of created shuffle file. The size should obey the rule: <code>max(spark.shuffle.pmof.pmpool_size) &lt; size_of_namespace * 0.9</code>. It's because we need to reserve some space in fsdax namespace for meta data. </p>
+<p><strong>Misc</strong><br />
+The config <code>spark.sql.shuffle.partitions</code> is required to set explicitly, it's suggested to  use default value <code>200</code> unless you're pretty sure what's the meaning of this value. </p>
 <h2 id="7-pmem-shuffle-for-spark-testing"><a id="pmem-shuffle-for-spark-testing"></a>7. PMem Shuffle for Spark Testing</h2>
 <hr />
 <p>Pmem shuffle extension have been tested and validated with Terasort and Decision support workloads. </p>
@@ -860,6 +890,11 @@ spark.driver.rport                                          61000
 
 </code></pre>
 
+<h2 id="8-trouble-shooting"><a id="trouble-shooting"></a>8. Trouble shooting</h2>
+<p>For any reason that a previous job is failed, please empty PMem spaces before another run.<br />
+It's because normal space release operation might fail to be invoked for failed jobs.  </p>
+<p>For devdax, use <code>pmempool rm {devdax-namespace}</code> to reset the entire namespace.  <br />
+For fsdax, use <code>rm -rf {mounted-pmem-folder}/shuffle_block*</code> to remove corresponding shuffle pool files.  </p>
 <h3 id="reference-guides-without-bkc-access">Reference guides (without BKC access)</h3>
 <hr />
 <p>If you do not have BKC access, please following below official guide:
