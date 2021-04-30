@@ -5,26 +5,26 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="None">
   
   
-  <link rel="shortcut icon" href="img/favicon.ico">
-  <title>PMem Shuffle - master</title>
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>User Guide - PMem Shuffle - 1.1.0</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
 
-  <link rel="stylesheet" href="css/theme.css" />
-  <link rel="stylesheet" href="css/theme_extra.css" />
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" />
   
   <script>
     // Current page data
-    var mkdocs_page_name = "PMem Shuffle for Apache Spark Guide";
-    var mkdocs_page_input_path = "index.md";
+    var mkdocs_page_name = "User Guide";
+    var mkdocs_page_input_path = "User-Guide.md";
     var mkdocs_page_url = null;
   </script>
   
-  <script src="js/jquery-2.1.1.min.js" defer></script>
-  <script src="js/modernizr-2.8.3.min.js" defer></script>
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
   <script>hljs.initHighlightingOnLoad();</script> 
   
@@ -38,29 +38,149 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
     <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
-        <a href="." class="icon icon-home"> PMem Shuffle - master</a>
+        <a href=".." class="icon icon-home"> PMem Shuffle - 1.1.0</a>
         <div role="search">
-  <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
   </form>
 </div>
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="User-Guide/">User Guide</a>
+                <ul class="current">
+                    <li class="toctree-l1 current"><a class="reference internal current" href="./">User Guide</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#1-pmem-shuffle-introduction">1. PMem Shuffle introduction</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#2-recommended-hw-environment">2. Recommended HW environment</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#21-system-configuration">2.1. System Configuration</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#211-hw-and-sw-configuration">2.1.1 HW and SW Configuration</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#22-recommended-rdma-nic">2.2. Recommended RDMA NIC</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#23-recommended-pmem-configuration">2.3 Recommended PMEM configuration</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#24-recommended-pmem-bkc-optional">2.4 Recommended PMEM BKC (optional)</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#3-install-and-configure-pmem-example">3. Install and configure PMEM (example)</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#4-configure-and-validate-rdma">4. Configure and Validate RDMA</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#41-configure-and-test-iwarp-rdma">4.1 Configure and test iWARP RDMA</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#411-download-rdma-core-and-install-dependencies">4.1.1 Download rdma-core and install dependencies</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#412-switch-configuration-optional">4.1.2 Switch Configuration (optional)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#413-download-and-install-drivers">4.1.3 Download and install drivers</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#a-example-mellanox-enabling-roce-v2-rdma-optional">A. Example: Mellanox Enabling RoCE V2 RDMA (Optional)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#b-enable-pfc-priority-flow-control-to-guarantee-stable-performance-optional">B. Enable PFC (Priority Flow Control) to guarantee stable performance (optional)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#414-check-rdma-module">4.1.4 Check RDMA module</a>
+    </li>
+        </ul>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#5-install-dependencies-for-pmem-shuffle">5. Install dependencies for PMem Shuffle</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#51-install-hpnl-httpsgithubcomintel-bigdatahpnl">5.1 Install HPNL (https://github.com/Intel-bigdata/HPNL)</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#511-build-and-install-hpnl">5.1.1 Build and install HPNL</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#52-install-basic-c-library-dependencies">5.2 install basic C library dependencies</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#53-install-ndctl">5.3 install ndctl</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#54-install-pmdk">5.4 install PMDK</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#55-install-rpmem-extension">5.5 Install RPMem extension</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#6-install-pmem-shuffle-for-spark">6. Install PMem Shuffle for Spark</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#61-configure-rpmem-extension-for-spark-shuffle-in-spark">6.1 Configure RPMem extension for spark shuffle in Spark</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#prerequisite">Prerequisite</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#switch-onoff-pmem-and-rdma">Switch On/Off PMem and RDMA</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#add-pmem-information-to-spark-config">Add PMem information to spark config</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#memory-configuration-suggestion">Memory configuration suggestion</a>
+    </li>
+        </ul>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#7-pmem-shuffle-for-spark-testing">7. PMem Shuffle for Spark Testing</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#71-decision-support-workloads">7.1 Decision support workloads</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#711-download-spark-sql-perf">7.1.1 Download spark-sql-perf</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#712-download-the-kit">7.1.2 Download the kit</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#713-prepare-data">7.1.3 Prepare data</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#714-run-the-benchmark">7.1.4 Run the benchmark</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#715-check-the-result">7.1.5 Check the result</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#72-terasort">7.2 TeraSort</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#721-download-hibench">7.2.1 Download HiBench</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#722-build-hibench-as-per-instructions-from-build-bench">7.2.2 Build HiBench as per instructions from build-bench.</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#723-configuration">7.2.3 Configuration</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#724-launch-the-benchmark">7.2.4 Launch the benchmark</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#725-check-the-result">7.2.5 Check the result</a>
+    </li>
+        </ul>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#reference">Reference</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#rpmemshuffle-spark-configuration">RPMemShuffle Spark configuration</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#8-trouble-shooting">8. Trouble shooting</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#reference-guides-without-bkc-access">Reference guides (without BKC access)</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
                     </li>
                 </ul>
                 <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="OAP-Installation-Guide/">OAP Installation Guide</a>
+                    <li class="toctree-l1"><a class="reference internal" href="../OAP-Installation-Guide/">OAP Installation Guide</a>
                     </li>
                 </ul>
                 <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="OAP-Developer-Guide/">OAP Developer Guide</a>
+                    <li class="toctree-l1"><a class="reference internal" href="../OAP-Developer-Guide/">OAP Developer Guide</a>
                     </li>
                 </ul>
                 <ul>
-                    <li class="toctree-l1"><a class="" href="../">Version Selector</a>
+                    <li class="toctree-l1"><a class="" href="../../">Version Selector</a>
                     </li>
                 </ul>
       </div>
@@ -72,7 +192,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href=".">PMem Shuffle - master</a>
+        <a href="..">PMem Shuffle - 1.1.0</a>
       </nav>
 
       
@@ -80,11 +200,11 @@
         <div class="rst-content">
           <div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
-    <li><a href=".">Docs</a> &raquo;</li>
+    <li><a href="..">Docs</a> &raquo;</li>
     
       
     
-    <li>PMem Shuffle for Apache Spark Guide</li>
+    <li>User Guide</li>
     <li class="wy-breadcrumbs-aside">
       
     </li>
@@ -138,7 +258,7 @@ high performance and low latency shuffle solutions for Spark to address performa
 <p>The Figure 1 shows the high level architecture of PMem Shuffle, it shows how data flows between Spark and shuffle devices in
 PMem Shuffle for spark shuffle and Vanilla Spark. In this guide, we
 will introduce how to deploy and use PMem Shuffle for Spark.</p>
-<p><img alt="architecture" src="image/RPMem_shuffle_architecture.png" /></p>
+<p><img alt="architecture" src="../image/RPMem_shuffle_architecture.png" /></p>
 <p>Figure 1: PMem Shuffle for Spark</p>
 <h2 id="2-recommended-hw-environment"><a id="recommended-hw-environment"></a>2. Recommended HW environment</h2>
 <h3 id="21-system-configuration">2.1. System Configuration</h3>
@@ -412,7 +532,7 @@ ping data: rdma-ping-3: DEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstu
 <p>Please refer to your NIC manuual for detail instructions on how to validate RDMA works. </p>
 <h2 id="5-install-dependencies-for-pmem-shuffle"><a id="install-dependencies-for-pmem-shuffle"></a>5. Install dependencies for PMem Shuffle</h2>
 <hr />
-<p>We have provided a Conda package which will automatically install dependencies needed for PMem Shuffle, refer to <a href="OAP-Installation-Guide/">OAP-Installation-Guide</a> for more information. If you have finished <a href="OAP-Installation-Guide/">OAP-Installation-Guide</a>, you can find compiled OAP jars in <code>$HOME/miniconda2/envs/oapenv/oap_jars/</code>,  and skip this session and jump to <a href="#install-pmem-shuffle-for-spark">6.Install PMem Shuffle for Spark</a></p>
+<p>We have provided a Conda package which will automatically install dependencies needed for PMem Shuffle, refer to <a href="../OAP-Installation-Guide/">OAP-Installation-Guide</a> for more information. If you have finished <a href="../OAP-Installation-Guide/">OAP-Installation-Guide</a>, you can find compiled OAP jars in <code>$HOME/miniconda2/envs/oapenv/oap_jars/</code>,  and skip this session and jump to <a href="#install-pmem-shuffle-for-spark">6.Install PMem Shuffle for Spark</a></p>
 <h3 id="51-install-hpnl-httpsgithubcomintel-bigdatahpnl">5.1 Install HPNL (<a href="https://github.com/Intel-bigdata/HPNL">https://github.com/Intel-bigdata/HPNL</a>)</h3>
 <hr />
 <p>HPNL is a fast, CPU-Efficient network library designed for modern
@@ -793,6 +913,13 @@ Persistent Memory
           </div>
           <footer>
   
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../OAP-Installation-Guide/" class="btn btn-neutral float-right" title="OAP Installation Guide">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+    </div>
+  
 
   <hr/>
 
@@ -816,11 +943,13 @@ Persistent Memory
       
       
       
+        <span style="margin-left: 15px"><a href="../OAP-Installation-Guide/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
     </span>
 </div>
-    <script>var base_url = '.';</script>
-    <script src="js/theme.js" defer></script>
-      <script src="search/main.js" defer></script>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
     <script defer>
         window.onload = function () {
             SphinxRtdTheme.Navigation.enable(true);
@@ -829,8 +958,3 @@ Persistent Memory
 
 </body>
 </html>
-
-<!--
-MkDocs version : 1.1.2
-Build Date UTC : 2021-04-30 01:09:39.588309+00:00
--->
