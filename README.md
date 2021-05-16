@@ -581,6 +581,8 @@ Use `spark.shuffle.pmof.pmpool_size` to specify the size of created shuffle file
 **Misc**  
 The config `spark.sql.shuffle.partitions` is required to set explicitly, it's suggested to  use default value `200` unless you're pretty sure what's the meaning of this value. 
 
+Since Spark 3.1.1, please explicitly set `spark.shuffle.readHostLocalDisk` to `false`.  
+
 ## <a id="pmem-shuffle-for-spark-testing"></a>7. PMem Shuffle for Spark Testing 
 -----------------------------
 
