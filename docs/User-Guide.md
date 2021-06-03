@@ -84,7 +84,7 @@ Master node can be co-located with one of the Hadoop data nodes.
 - Please refer to section 4.2 for configurations
 **Software:**
 -   Hadoop 2.7
--   Spark 3.0.0
+-   Spark 3.1.1
 -   Fedora 29 with ww08.2019 BKC
 
 ### 2.2. Recommended RDMA NIC
@@ -467,7 +467,7 @@ mvn install -DskipTests
 --------------------------------------------------------
 
 PMem Shuffle for spark shuffle is designed as a plugin to Spark.
-Currently the plugin supports Spark 3.0.0 and works well on various
+Currently the plugin supports Spark 3.1.1 and works well on various
 Network fabrics, including Socket, RDMA and Omni-Path. There are several
 configurations files needs to be modified in order to run PMem Shuffle. 
 
