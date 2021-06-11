@@ -126,19 +126,13 @@ private[spark] class BaseShuffleReader[K, C](handle: BaseShuffleHandle[K, _, C],
     }
 
     // Sort the output if there is a sort ordering defined.
-    val resultIter = dep.keyOrdering match {
+    val resultIter: Iterator[Product2[K, C]] = dep.keyOrdering match {
       case Some(keyOrd: Ordering[K]) =>
         assert(pmofConf.enablePmem)
         // Create an ExternalSorter to sort the data.
         val sorter =
           new PmemExternalSorter[K, C, C](context, handle, pmofConf, ordering = Some(keyOrd), serializer = dep.serializer)
-        logDebug("call PmemExternalSorter.insertAll for shuffle_0_" + handle.shuffleId + "_[" + startPartition + "," + endPartition + "]")
-        sorter.insertAll(aggregatedIter)
-        // Use completion callback to stop sorter if task was finished/cancelled.
-        context.addTaskCompletionListener[Unit](_ => {
-          sorter.stop()
-        })
-        CompletionIterator[Product2[K, C], Iterator[Product2[K, C]]](sorter.iterator, sorter.stop())
+        sorter.insertAllAndUpdateMetrics(aggregatedIter)
       case None =>
         aggregatedIter
     }
