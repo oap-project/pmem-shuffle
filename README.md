@@ -499,9 +499,8 @@ $HOME/miniconda2/envs/oapenv/bin/pmempool rm ${device_name}
 #### Enable RPMemShuffle
 ```bash
 spark.shuffle.manager		      org.apache.spark.shuffle.pmof.PmofShuffleManager
-spark.driver.extraClassPath           /$path/oap-shuffle/RPMem-shuffle/core/target/oap-rpmem-shuffle-java-<version>-jar-with-dependencies.jar
-spark.executor.extraClassPath         /$path/oap-shuffle/RPMem-shuffle/core/target/oap-rpmem-shuffle-java-<version>-jar-with-dependencies.jar
-
+spark.driver.extraClassPath           /$path/oap-shuffle/RPMem-shuffle/core/target/oap-rpmem-shuffle-java-<version>-with-spark<spark.version>.jar
+spark.executor.extraClassPath         /$path/oap-shuffle/RPMem-shuffle/core/target/oap-rpmem-shuffle-java-<version>-with-spark<spark.version>.jar
 ```
 #### Switch On/Off PMem and RDMA
 ```bash
@@ -772,8 +771,8 @@ spark.yarn.driver.memoryOverhead 5g
 
 spark.shuffle.compress                                      true
 spark.io.compression.codec                                  snappy
-spark.driver.extraClassPath                                 $HOME/miniconda2/envs/oapenv/oap_jars/oap-rpmem-shuffle-java-<version>-jar-with-dependencies.jar
-spark.executor.extraClassPath                               $HOME/miniconda2/envs/oapenv/oap_jars/oap-rpmem-shuffle-java-<version>-jar-with-dependencies.jar
+spark.driver.extraClassPath                                 $HOME/miniconda2/envs/oapenv/oap_jars/oap-rpmem-shuffle-java-<version>-with-spark<spark.version>.jar
+spark.executor.extraClassPath                               $HOME/miniconda2/envs/oapenv/oap_jars/oap-rpmem-shuffle-java-<version>-with-spark<spark.version>.jar
 spark.shuffle.manager                                       org.apache.spark.shuffle.pmof.PmofShuffleManager
 spark.shuffle.pmof.enable_rdma                              true
 spark.shuffle.pmof.enable_pmem                              true
