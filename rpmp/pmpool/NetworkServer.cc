@@ -9,13 +9,14 @@
 
 #include "pmpool/NetworkServer.h"
 
-#include "Base.h"
-#include "Config.h"
-#include "Event.h"
-#include "Log.h"
-#include "buffer/CircularBuffer.h"
+#include "pmpool/Base.h"
+#include "pmpool/Config.h"
+#include "pmpool/Event.h"
+#include "pmpool/RLog.h"
+#include "pmpool/buffer/CircularBuffer.h"
 
-NetworkServer::NetworkServer(Config *config, Log *log)
+NetworkServer::NetworkServer(std::shared_ptr<Config> config,
+                             std::shared_ptr<RLog> log)
     : config_(config), log_(log) {
   time = 0;
 }
@@ -44,8 +45,8 @@ int NetworkServer::start() {
   CHK_ERR("hpnl server listen", server_->listen(config_->get_ip().c_str(),
                                                 config_->get_port().c_str()));
 
-  circularBuffer_ =
-      std::make_shared<CircularBuffer>(1024 * 1024, 4096, true, this);
+  circularBuffer_ = std::make_shared<CircularBuffer>(1024 * 1024, 10240, true,
+                                                     shared_from_this());
   return 0;
 }
 
@@ -61,6 +62,12 @@ void NetworkServer::unregister_rma_buffer(int buffer_id) {
 
 void NetworkServer::get_dram_buffer(RequestReplyContext *rrc) {
   char *buffer = circularBuffer_->get(rrc->size);
+#ifdef DEBUG
+  fprintf(stderr, "[get_dram_buffer]key is %lu, start is %lu, end is %lu\n",
+          rrc->key, circularBuffer_->get_offset((uint64_t)buffer),
+          circularBuffer_->get_offset((uint64_t)buffer) + rrc->size);
+#endif
+
   rrc->dest_address = (uint64_t)buffer;
 
   Chunk *base_ck = circularBuffer_->get_rma_chunk();
@@ -98,7 +105,11 @@ void NetworkServer::reclaim_pmem_buffer(RequestReplyContext *rrc) {
   }
 }
 
-ChunkMgr *NetworkServer::get_chunk_mgr() { return chunkMgr_.get(); }
+uint64_t NetworkServer::get_rkey() {
+  return circularBuffer_->get_rma_chunk()->mr->key;
+}
+
+std::shared_ptr<ChunkMgr> NetworkServer::get_chunk_mgr() { return chunkMgr_; }
 
 void NetworkServer::set_recv_callback(Callback *callback) {
   server_->set_recv_callback(callback);
@@ -123,12 +134,20 @@ void NetworkServer::send(char *data, uint64_t size, Connection *con) {
   con->send(ck);
 }
 
-void NetworkServer::read(RequestReply *rr) {
-  RequestReplyContext rrc = rr->get_rrc();
+void NetworkServer::read(std::shared_ptr<RequestReply> rr) {
+  auto rrc = rr->get_rrc();
+#ifdef DEBUG
+  printf("[NetworkServer::read] dest is %ld-%d, src is %ld-%d\n",
+         rrc.ck->buffer, rrc.ck->size, rrc.src_address, rrc.size);
+#endif
   rrc.con->read(rrc.ck, 0, rrc.size, rrc.src_address, rrc.src_rkey);
 }
 
-void NetworkServer::write(RequestReply *rr) {
-  RequestReplyContext rrc = rr->get_rrc();
+void NetworkServer::write(std::shared_ptr<RequestReply> rr) {
+  auto rrc = rr->get_rrc();
+#ifdef DEBUG
+  printf("[NetworkServer::write] src is %ld-%d, dest is %ld-%d\n",
+         rrc.ck->buffer, rrc.ck->size, rrc.src_address, rrc.size);
+#endif
   rrc.con->write(rrc.ck, 0, rrc.size, rrc.src_address, rrc.src_rkey);
 }

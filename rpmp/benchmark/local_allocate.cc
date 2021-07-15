@@ -17,7 +17,7 @@
 
 #include "../pmpool/AllocatorProxy.h"
 #include "../pmpool/Config.h"
-#include "../pmpool/Log.h"
+#include "../pmpool/RLog.h"
 #include "gtest/gtest.h"
 
 uint64_t timestamp_now() {
@@ -26,13 +26,13 @@ uint64_t timestamp_now() {
 }
 
 std::mutex mtx;
-uint64_t count = 0;
+uint64_t counter = 0;
 char str[1048576];
 
-void func(AllocatorProxy *proxy, int index) {
+void func(std::shared_ptr<AllocatorProxy> proxy, int index) {
   while (true) {
     std::unique_lock<std::mutex> lk(mtx);
-    uint64_t count_ = count++;
+    uint64_t count_ = counter++;
     lk.unlock();
     if (count_ < 20480) {
       uint64_t addr = proxy->allocate_and_write(1048576, nullptr, index);
@@ -46,8 +46,8 @@ void func(AllocatorProxy *proxy, int index) {
 int main() {
   std::shared_ptr<Config> config = std::make_shared<Config>();
   config->init(0, nullptr);
-  std::shared_ptr<Log> log = std::make_shared<Log>(config.get());
-  auto allocatorProxy = new AllocatorProxy(config.get(), log.get(), nullptr);
+  std::shared_ptr<RLog> log = std::make_shared<RLog>(config->get_log_path(), config->get_log_level());
+  auto allocatorProxy = std::make_shared<AllocatorProxy>(config, log, nullptr);
   allocatorProxy->init();
   std::vector<std::thread *> threads;
   memset(str, '0', 1048576);
