@@ -1,6 +1,7 @@
 package org.apache.spark.util.collection.pmof
 
 import java.util.Comparator
+import java.util.UUID
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -12,11 +13,13 @@ import org.apache.spark.util.collection._
 import org.apache.spark.storage.pmof._
 import org.apache.spark.util.configuration.pmof.PmofConf
 import org.apache.spark.util.{CompletionIterator, Utils => TryUtils}
+import org.apache.spark.storage.BlockManager
 
 private[spark] class PmemExternalSorter[K, V, C](
     context: TaskContext,
     handle: BaseShuffleHandle[K, _, C],
     pmofConf: PmofConf,
+    blockManager: BlockManager,
     aggregator: Option[Aggregator[K, V, C]] = None,
     partitioner: Option[Partitioner] = None,
     ordering: Option[Ordering[K]] = None,
@@ -59,9 +62,10 @@ private[spark] class PmemExternalSorter[K, V, C](
     if (mapStage) {
       pmemBlockOutputStreamArray(partitionId)
     } else {
+      val tmpBlockName = s"${UUID.randomUUID()}"
       pmemBlockOutputStreamArray += new PmemBlockOutputStream(
         context.taskMetrics(),
-        PmemBlockId.getTempBlockId(stageId),
+        PmemBlockId.getTempBlockId(blockManager.blockManagerId.executorId, tmpBlockName, stageId),
         SparkEnv.get.serializerManager,
         serializer,
         SparkEnv.get.conf,
@@ -331,7 +335,18 @@ private[spark] class PmemExternalSorter[K, V, C](
   class SpillReader(pmemBlockOutputStream: PmemBlockOutputStream) {
     // Each spill reader is relate to one partition
     // which is different from spark original codes (relate to one spill file)
-    val pmemBlockInputStream = new PmemBlockInputStream[K, C](pmemBlockOutputStream, serializer)
+    val pmemBlockInputStream = if (!pmofConf.enableRemotePmem) {
+      new LocalPmemBlockInputStream[K, C](
+        pmemBlockOutputStream.getBlockId,
+        pmemBlockOutputStream.getTotalRecords,
+        serializer)
+    } else {
+      new RemotePmemBlockInputStream[K, C](
+        pmemBlockOutputStream.getBlockId,
+        pmemBlockOutputStream.mapStatus,
+        serializer,
+        pmofConf)
+    }
     var nextItem: (K, C) = _
 
     def readPartitionIter(partitionId: Int): Iterator[Product2[K, C]] = new Iterator[Product2[K, C]] {
