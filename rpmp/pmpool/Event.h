@@ -34,6 +34,7 @@ enum OpType : uint32_t {
   WRITE,
   READ,
   PUT,
+  REPLICATE_PUT,
   GET,
   GET_META,
   DELETE,
@@ -44,6 +45,7 @@ enum OpType : uint32_t {
   WRITE_REPLY,
   READ_REPLY,
   PUT_REPLY,
+  REPLICATE_PUT_REPLY,
   GET_REPLY,
   GET_META_REPLY,
   DELETE_REPLY
@@ -68,7 +70,7 @@ struct RequestReplyContext {
   uint64_t key;
   Connection* con;
   Chunk* ck;
-  vector <block_meta> bml;
+  vector<block_meta> bml;
 };
 
 template <class T>
@@ -88,18 +90,20 @@ inline void decode_(T* t, char* data, uint64_t size) {
 class RequestReply {
  public:
   RequestReply() = delete;
-  explicit RequestReply(RequestReplyContext requestReplyContext);
+  explicit RequestReply(RequestReplyContext& requestReplyContext);
   RequestReply(char* data, uint64_t size, Connection* con);
   ~RequestReply();
   RequestReplyContext& get_rrc();
+  void set_rrc(RequestReplyContext& rrc);
   void decode();
   void encode();
 
  private:
+  std::mutex data_lock_;
   friend Protocol;
-  char* data_;
-  uint64_t size_;
-  RequestReplyMsg requestReplyMsg_;
+  char* data_ = nullptr;
+  uint64_t size_ = 0;
+  // RequestReplyMsg requestReplyMsg_;
   RequestReplyContext requestReplyContext_;
 };
 
@@ -126,13 +130,17 @@ class Request {
   RequestContext& get_rc();
   void encode();
   void decode();
+  //#ifdef DEBUG
+  char* getData() { return data_; }
+  uint64_t getSize() { return size_; }
+  //#endif
 
  private:
+  std::mutex data_lock_;
   friend RequestHandler;
   friend ClientRecvCallback;
   char* data_;
   uint64_t size_;
-  RequestMsg requestMsg_;
   RequestContext requestContext_;
 };
 
