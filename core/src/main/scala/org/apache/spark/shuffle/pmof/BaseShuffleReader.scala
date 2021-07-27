@@ -131,7 +131,7 @@ private[spark] class BaseShuffleReader[K, C](handle: BaseShuffleHandle[K, _, C],
         assert(pmofConf.enablePmem)
         // Create an ExternalSorter to sort the data.
         val sorter =
-          new PmemExternalSorter[K, C, C](context, handle, pmofConf, ordering = Some(keyOrd), serializer = dep.serializer)
+          new PmemExternalSorter[K, C, C](context, handle, pmofConf, blockManager, ordering = Some(keyOrd), serializer = dep.serializer)
         sorter.insertAllAndUpdateMetrics(aggregatedIter)
       case None =>
         aggregatedIter

@@ -1,9 +1,4 @@
 /*
- * Filename: /mnt/spark-pmof/tool/rpmp/main.cc
- * Path: /mnt/spark-pmof/tool/rpmp
- * Created Date: Thursday, November 7th 2019, 3:48:52 pm
- * Author: root
- *
  * Copyright (c) 2019 Intel
  */
 
@@ -12,27 +7,29 @@
 #include "pmpool/Config.h"
 #include "pmpool/DataServer.h"
 #include "pmpool/Base.h"
-#include "pmpool/Log.h"
+#include "pmpool/RLog.h"
 
 /**
- * @brief program entry of RPMP server
- * @param argc 
- * @param argv 
- * @return int 
+ * @brief program entry of RPMP data server
  */
 int ServerMain(int argc, char **argv) {
   /// initialize Config class
   std::shared_ptr<Config> config = std::make_shared<Config>();
-  CHK_ERR("config init", config->init(argc, argv));
+  config->readFromFile();
+  if (argc > 1){
+    CHK_ERR("config init", config->init(argc, argv));
+  }
   /// initialize Log class
-  std::shared_ptr<Log> log = std::make_shared<Log>(config.get());
+  std::shared_ptr<RLog> log = std::make_shared<RLog>(config->get_log_path(), config->get_log_level());
+
   /// initialize DataServer class
   std::shared_ptr<DataServer> dataServer =
-      std::make_shared<DataServer>(config.get(), log.get());
+      std::make_shared<DataServer>(config, log);
   log->get_file_log()->info("start to initialize data server.");
   CHK_ERR("data server init", dataServer->init());
-  log->get_file_log()->info("data server initailized.");
+  log->get_file_log()->info("data server initialized.");
   dataServer->wait();
+   
   return 0;
 }
 

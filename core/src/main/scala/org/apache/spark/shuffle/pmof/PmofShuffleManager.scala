@@ -21,7 +21,7 @@ private[spark] class PmofShuffleManager(conf: SparkConf) extends ShuffleManager 
    */
   private[this] val taskIdMapsForShuffle = new ConcurrentHashMap[Int, OpenHashSet[Long]]()
 
-  private[this] val pmofConf = new PmofConf(conf)
+  private[this] val pmofConf = PmofConf.getConf(conf)
   var metadataResolver: MetadataResolver = _
 
   override def registerShuffle[K, V, C](shuffleId: Int, dependency: ShuffleDependency[K, V, C]): ShuffleHandle = {
@@ -62,9 +62,27 @@ private[spark] class PmofShuffleManager(conf: SparkConf) extends ShuffleManager 
   override def getReader[K, C](handle: _root_.org.apache.spark.shuffle.ShuffleHandle, startMapIndex: Int, endMapIndex: Int, startPartition: Int, endPartition: Int, context: _root_.org.apache.spark.TaskContext, readMetrics: ShuffleReadMetricsReporter): _root_.org.apache.spark.shuffle.ShuffleReader[K, C] = {
     val blocksByAddress = SparkEnv.get.mapOutputTracker.getMapSizesByExecutorId(
       handle.shuffleId, startMapIndex, endMapIndex, startPartition, endPartition)
-    if (pmofConf.enableRdma) {
-      new RdmaShuffleReader(handle.asInstanceOf[BaseShuffleHandle[K, _, C]],
-        startMapIndex, endMapIndex, startPartition, endPartition, context, pmofConf)
+    val env: SparkEnv = SparkEnv.get 
+    if (pmofConf.enableRemotePmem) {
+      new RpmpShuffleReader(
+        handle.asInstanceOf[BaseShuffleHandle[K, _, C]],
+        startMapIndex,
+        endMapIndex,
+        startPartition,
+        endPartition,
+        context,
+        pmofConf)
+    } else if (pmofConf.enableRdma) {
+      metadataResolver = MetadataResolver.getMetadataResolver(pmofConf)
+      PmofTransferService.getTransferServiceInstance(pmofConf, env.blockManager, this)
+      new RdmaShuffleReader(
+        handle.asInstanceOf[BaseShuffleHandle[K, _, C]],
+        startMapIndex,
+        endMapIndex,
+        startPartition,
+        endPartition,
+        context,
+        pmofConf)
     } else {
       new BaseShuffleReader(
         handle.asInstanceOf[BaseShuffleHandle[K, _, C]], blocksByAddress, startPartition, endPartition, context, readMetrics, pmofConf)
