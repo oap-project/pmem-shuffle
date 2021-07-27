@@ -44,7 +44,7 @@ class MetadataResolver(pmofConf: PmofConf) {
     * @param rkey
     */
   def pushPmemBlockInfo(shuffleId: Int, mapId: Long, dataAddressMap: mutable.HashMap[Int, Array[(Long, Int)]], rkey: Long): Unit = {
-    val buffer: Array[Byte] = new Array[Byte](pmofConf.reduce_serializer_buffer_size.toInt)
+    val buffer: Array[Byte] = new Array[Byte](pmofConf.map_serializer_buffer_size.toInt)
     var output = new Output(buffer)
     val bufferArray = new ArrayBuffer[ByteBuffer]()
 
@@ -60,7 +60,7 @@ class MetadataResolver(pmofConf: PmofConf) {
             blockBuffer.flip()
             bufferArray += blockBuffer
             output.close()
-            val new_buffer = new Array[Byte](pmofConf.reduce_serializer_buffer_size.toInt)
+            val new_buffer = new Array[Byte](pmofConf.map_serializer_buffer_size.toInt)
             output = new Output(new_buffer)
           }
         }
