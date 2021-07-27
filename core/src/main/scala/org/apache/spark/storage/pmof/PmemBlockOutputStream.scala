@@ -12,17 +12,19 @@ import org.apache.spark.util.configuration.pmof.PmofConf
 
 import scala.collection.mutable.ArrayBuffer
 
-class PmemBlockId (stageId: Int, tmpId: Int) extends ShuffleBlockId(stageId, 0, tmpId) {
-  override def name: String = "reduce_spill_" + stageId + "_" + tmpId
+class PmemBlockId (executorId: String, stageId: Int, tmpName: String, tmpId: Int) extends ShuffleBlockId(stageId, 0, tmpId) {
+  override def name: String = s"reduce_spill_${executorId}_${tmpName}_${tmpId}"
   override def isShuffle: Boolean = false
 }
 
 object PmemBlockId {
   private var tempId: Int = 0
-  def getTempBlockId(stageId: Int): PmemBlockId = synchronized {
-    val cur_tempId = tempId
-    tempId += 1
-    new PmemBlockId (stageId, cur_tempId)
+  def getTempBlockId(executorId: String, tmpName: String, stageId: Int): PmemBlockId = synchronized {
+    synchronized{
+      val cur_tempId = tempId
+      tempId += 1
+      new PmemBlockId (executorId, stageId, tmpName, cur_tempId)
+    }
   }
 }
 
@@ -45,14 +47,22 @@ private[spark] class PmemBlockOutputStream(
   var partitionMeta: Array[(Long, Int, Int)] = _
   val root_dir = Utils.getConfiguredLocalDirs(conf).toList.sortWith(_ < _)(0)
 
-  val persistentMemoryWriter: PersistentMemoryHandler = PersistentMemoryHandler.getPersistentMemoryHandler(pmofConf,
-    root_dir, pmofConf.path_list, blockId.name, pmofConf.maxPoolSize)
+  var persistentMemoryWriter: PersistentMemoryHandler = _
+  var remotePersistentMemoryPool: RemotePersistentMemoryPool = _
+  val mapStatus: ArrayBuffer[(String, Long, Int)] = ArrayBuffer[(String, Long, Int)]()
+
+  if (!pmofConf.enableRemotePmem) {
+    persistentMemoryWriter = PersistentMemoryHandler.getPersistentMemoryHandler(pmofConf,
+      root_dir, pmofConf.path_list, blockId.name, pmofConf.maxPoolSize)
+  } else {
+    remotePersistentMemoryPool = RemotePersistentMemoryPool.getInstance(pmofConf.rpmpHost, pmofConf.rpmpPort)
+  }
 
   //disable metadata updating by default
   //persistentMemoryWriter.updateShuffleMeta(blockId.name)
 
   val pmemOutputStream: PmemOutputStream = new PmemOutputStream(
-    persistentMemoryWriter, numPartitions, blockId.name, numMaps, (pmofConf.spill_throttle.toInt + 1024))
+    persistentMemoryWriter, remotePersistentMemoryPool, numPartitions, blockId.name, numMaps, (pmofConf.spill_throttle.toInt + 1024))
   val serInstance = serializer.newInstance()
   val bs = serializerManager.wrapStream(blockId, pmemOutputStream)
   var objStream: SerializationStream = serInstance.serializeStream(bs)
@@ -82,15 +92,16 @@ private[spark] class PmemBlockOutputStream(
   }
 
   def maybeSpill(force: Boolean = false): Unit = {
-    if ((pmofConf.spill_throttle != -1 && pmemOutputStream.remainingSize >= pmofConf.spill_throttle) || force == true) {
+    if ((pmofConf.spill_throttle != -1 && pmemOutputStream.bufferRemainingSize >= pmofConf.spill_throttle) || force == true) {
       val start = System.nanoTime()
       flush()
-      pmemOutputStream.doFlush()
+      //pmemOutputStream.doFlush()
       val bufSize = pmemOutputStream.flushedSize
+      mapStatus += ((pmemOutputStream.flushed_block_id, bufSize, recordsPerBlock))
       if (bufSize > 0) {
         recordsArray += recordsPerBlock
         recordsPerBlock = 0
-        size += bufSize
+        size = bufSize
 
         if (blockId.isShuffle == true) {
           val writeMetrics = taskMetrics.shuffleWriteMetrics
@@ -109,10 +120,29 @@ private[spark] class PmemBlockOutputStream(
     spilled
   }
 
+  def getPartitionBlockInfo(res_array: Array[Long]): Array[(Long, Int, Int)] = {
+    var i = -3
+    var blockInfo = Array.ofDim[(Long, Int)]((res_array.length)/3)
+    blockInfo.map{
+      x => i += 3;
+      (res_array(i), res_array(i+1).toInt, res_array(i+2).toInt)
+    }
+  }
+
   def getPartitionMeta(): Array[(Long, Int, Int)] = {
     if (partitionMeta == null) {
       var i = -1
-      partitionMeta = persistentMemoryWriter.getPartitionBlockInfo(blockId.name).map{ x=> i+=1; (x._1, x._2, recordsArray(i))}
+      partitionMeta = if (!pmofConf.enableRemotePmem) {
+        persistentMemoryWriter.getPartitionBlockInfo(blockId.name).map ( x => {
+          i += 1
+          (x._1, x._2, getRkey().toInt) 
+        })
+      } else {
+        getPartitionBlockInfo(remotePersistentMemoryPool.getMeta(blockId.name)).map( x => {
+          i += 1
+          (x._1, x._2, x._3) 
+        })
+      }
     }
     partitionMeta
   }
