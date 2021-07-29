@@ -101,7 +101,7 @@ private[spark] class PmemBlockOutputStream(
       if (bufSize > 0) {
         recordsArray += recordsPerBlock
         recordsPerBlock = 0
-        size = bufSize
+        size += bufSize
 
         if (blockId.isShuffle == true) {
           val writeMetrics = taskMetrics.shuffleWriteMetrics
