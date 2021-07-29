@@ -116,7 +116,7 @@ class PmemShuffleWriterSuite extends SparkFunSuite with SharedSparkContext with 
     }
     inObjStream.close
   }
-
+  
   test("write with some records into multiple partitions") {
     var partitioner: Partitioner = new Partitioner() {
       def numPartitions = 100
