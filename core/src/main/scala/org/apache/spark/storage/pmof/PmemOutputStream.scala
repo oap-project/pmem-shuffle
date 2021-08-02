@@ -64,6 +64,7 @@ class PmemOutputStream(
           bufferRemainingSize,
           set_clean)
       }
+      logDebug(s"flush ${blockId} size ${bufferRemainingSize}")
       bufferFlushedSize += bufferRemainingSize
       bufferRemainingSize = 0
     }
