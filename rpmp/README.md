@@ -17,6 +17,7 @@ Hardware:
 Software:
  - [HPNL](https://github.com/Intel-bigdata/HPNL)
  - [hiredis](https://github.com/redis/hiredis)
+ - [redis-plus-plus](https://github.com/sewenew/redis-plus-plus.git)
  - [jsoncpp](https://github.com/open-source-parsers/jsoncpp)
  - [PMDK](https://github.com/pmem/pmdk.git)
 
@@ -76,16 +77,31 @@ make && make install
 ```
 
 hiredis:
+```
 git clone https://github.com/redis/hiredis
 cd hiredis
 mkdir build; cd build
+cmake ..
 make && make install
+```
+
+Redis-plus-plus:
+```
+git clone https://github.com/sewenew/redis-plus-plus.git
+cd redis-plus-plus
+mkdir build
+cd build
+cmake ..
+make
+make install
+```
 
 jsoncpp:
 ```
 git clone https://github.com/open-source-parsers/jsoncpp.git
 cd jsoncpp
 mkdir build; cd build
+cmake ..
 make && make install
 ```
 
@@ -100,24 +116,15 @@ export PKG_CONFIG_PATH=/usr/local/lib64/pkgconfig/:$PKG_CONFIG_PATH
 echo “export PKG_CONFIG_PATH=/usr/local/lib64/pkgconfig/:$PKG_CONFIG_PATH” > /etc/profile.d/pmdk.sh
 ```
 
-Redis-plus-plus:
-```
-git clone https://github.com/sewenew/redis-plus-plus.git
-cd redis-plus-plus
-mkdir build
-cd build
-cmake ..
-make
-make install
-```
-
-
 ### Build for C/C++
 ```
-git clone https://github.com/Intel-bigdata/Spark-PMoF.git
+git clone https://github.com/oap-project/pmem-shuffle.git
+cd pmem-shuffle
 git submodule update --init --recursive
 git submodule add -b master https://github.com/redis/hiredis.git rpmp/include/hiredis
 git submodule add -b master https://github.com/open-source-parsers/jsoncpp.git rpmp/include/jsoncpp
+git submodule add -b master https://github.com/gabime/spdlog.git rpmp/include/spdlog
+
 cd rpmp 
 mkdir build
 cd build
