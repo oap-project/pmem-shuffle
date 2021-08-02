@@ -4,25 +4,20 @@
 #include <memory>
 #include <string>
 
-#include "rocksdb/db.h"
-#include "rocksdb/slice.h"
-#include "rocksdb/options.h"
 #include "redis/Redis.h"
 
 #include "pmpool/Config.h"
 #include "pmpool/RLog.h"
 
 using namespace std;
-using namespace ROCKSDB_NAMESPACE;
 
 /**
- * Facade for connection to Redis and RocksDB
+ * Facade for connection to Redis
  * 
  **/
 class ConnectionFacade: public std::enable_shared_from_this<ConnectionFacade>{
 public:
-  // RocksDB
-  ConnectionFacade(std::shared_ptr<Config> config, std::shared_ptr<RLog> log, string type);
+  ConnectionFacade(std::shared_ptr<Config> config, std::shared_ptr<RLog> log,string type);
   // Redis 
   int connect();
   // Common
@@ -40,10 +35,7 @@ private:
   bool connected_;
   int setConnected(bool connected);
   string type_;
-  string ROCKS = "ROCKS";
   string REDIS = "REDIS";
-  // RocksDB
-  DB *db_;
   // Redis
   shared_ptr<Redis> redis_;
 };

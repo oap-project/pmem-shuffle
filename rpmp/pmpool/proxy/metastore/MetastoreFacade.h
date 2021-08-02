@@ -10,7 +10,7 @@
 class Config;
 
 /**
- * Facade for metastore, either Redis or RocksDB
+ * Facade for metastore
  * 
  **/
 class MetastoreFacade: public std::enable_shared_from_this<MetastoreFacade>{
@@ -31,7 +31,6 @@ private:
   std::string port_;
   std::string type_;
   std::string REDIS = "REDIS";
-  std::string ROCKS = "ROCKS";
 };
 
 #endif

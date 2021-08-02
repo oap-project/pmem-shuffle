@@ -2,7 +2,6 @@
 #include "../../Config.h"
 
 #include "MetastoreFacade.h"
-#include "rocksdb/Rocks.h"
 #include "redis/Redis.h"
 #include "json/json.h"
 
@@ -17,12 +16,7 @@ MetastoreFacade::MetastoreFacade(std::shared_ptr<Config> config, std::shared_ptr
 
 bool MetastoreFacade::connect() {
   int res = 0;
-  if(type_ == ROCKS){
-    string DBPath = "/tmp/rocksdb_simple_example";
-    res = connection_->connect(DBPath);
-  }else if(type_ == REDIS){
-    res = connection_->connect();
-  }
+  res = connection_->connect();
   if (res == 0) {
     log_->get_console_log()->info("Successfully connected to metastore database");
     return true;
