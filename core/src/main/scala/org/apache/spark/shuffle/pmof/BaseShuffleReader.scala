@@ -87,6 +87,11 @@ private[spark] class BaseShuffleReader[K, C](handle: BaseShuffleHandle[K, _, C],
       fetchContinuousBlocksInBatch
     ).toCompletionIterator
 
+    /**
+    *   Force iterator to traverse itself and update internal counter
+    **/
+    wrappedStreams.size
+
     val serializerInstance = dep.serializer.newInstance()
 
     // Create a key/value iterator for each stream
