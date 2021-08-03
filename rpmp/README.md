@@ -20,6 +20,7 @@ Software:
  - [redis-plus-plus](https://github.com/sewenew/redis-plus-plus.git)
  - [jsoncpp](https://github.com/open-source-parsers/jsoncpp)
  - [PMDK](https://github.com/pmem/pmdk.git)
+ - [boost](https://www.boost.org/)
 
 ## <a id="hardware-enabling"></a>Hardware Enabling
 
@@ -116,6 +117,11 @@ export PKG_CONFIG_PATH=/usr/local/lib64/pkgconfig/:$PKG_CONFIG_PATH
 echo “export PKG_CONFIG_PATH=/usr/local/lib64/pkgconfig/:$PKG_CONFIG_PATH” > /etc/profile.d/pmdk.sh
 ```
 
+boost:
+```
+yum install boost-devel
+```
+
 ### Build for C/C++
 ```
 git clone https://github.com/oap-project/pmem-shuffle.git
@@ -123,7 +129,7 @@ cd pmem-shuffle
 git submodule update --init --recursive
 git submodule add -b master https://github.com/redis/hiredis.git rpmp/include/hiredis
 git submodule add -b master https://github.com/open-source-parsers/jsoncpp.git rpmp/include/jsoncpp
-git submodule add -b master https://github.com/gabime/spdlog.git rpmp/include/spdlog
+git submodule add -b v1.x https://github.com/gabime/spdlog.git rpmp/include/spdlog
 
 cd rpmp 
 mkdir build
