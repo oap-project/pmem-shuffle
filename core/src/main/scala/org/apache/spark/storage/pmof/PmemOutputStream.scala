@@ -19,7 +19,7 @@ class PmemOutputStream(
   var is_closed = false
   var key_id = 0
 
-  val length: Int = 1024 * 1024 * 6
+  val length: Int = bufferSize
   var bufferFlushedSize: Int = 0
   var bufferRemainingSize: Int = 0
   val buf: ByteBuf = NettyByteBufferPool.allocateFlexibleNewBuffer(length)
@@ -37,6 +37,10 @@ class PmemOutputStream(
   }
 
   override def flush(): Unit = {
+
+  }
+
+  def doFlush(): Unit = {
     if (bufferRemainingSize > 0) {
       if (remotePersistentMemoryPool != null) {
         logDebug(s" [PUT Started]${cur_block_id}-${bufferRemainingSize}")
@@ -71,10 +75,6 @@ class PmemOutputStream(
     if (set_clean) {
       set_clean = false
     }
-  }
-
-  def doFlush(): Unit = {
-
   }
 
   def flushedSize(): Int = {

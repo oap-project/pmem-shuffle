@@ -62,7 +62,6 @@ private[spark] class PmofShuffleManager(conf: SparkConf) extends ShuffleManager 
   override def getReader[K, C](handle: _root_.org.apache.spark.shuffle.ShuffleHandle, startMapIndex: Int, endMapIndex: Int, startPartition: Int, endPartition: Int, context: _root_.org.apache.spark.TaskContext, readMetrics: ShuffleReadMetricsReporter): _root_.org.apache.spark.shuffle.ShuffleReader[K, C] = {
     val blocksByAddress = SparkEnv.get.mapOutputTracker.getMapSizesByExecutorId(
       handle.shuffleId, startMapIndex, endMapIndex, startPartition, endPartition)
-    val env: SparkEnv = SparkEnv.get 
     if (pmofConf.enableRemotePmem) {
       new RpmpShuffleReader(
         handle.asInstanceOf[BaseShuffleHandle[K, _, C]],
@@ -73,6 +72,7 @@ private[spark] class PmofShuffleManager(conf: SparkConf) extends ShuffleManager 
         context,
         pmofConf)
     } else if (pmofConf.enableRdma) {
+      val env: SparkEnv = SparkEnv.get 
       metadataResolver = MetadataResolver.getMetadataResolver(pmofConf)
       PmofTransferService.getTransferServiceInstance(pmofConf, env.blockManager, this)
       new RdmaShuffleReader(

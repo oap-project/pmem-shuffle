@@ -95,13 +95,13 @@ private[spark] class PmemBlockOutputStream(
     if ((pmofConf.spill_throttle != -1 && pmemOutputStream.bufferRemainingSize >= pmofConf.spill_throttle) || force == true) {
       val start = System.nanoTime()
       flush()
-      //pmemOutputStream.doFlush()
+      pmemOutputStream.doFlush()
       val bufSize = pmemOutputStream.flushedSize
       mapStatus += ((pmemOutputStream.flushed_block_id, bufSize, recordsPerBlock))
       if (bufSize > 0) {
         recordsArray += recordsPerBlock
         recordsPerBlock = 0
-        size += bufSize
+        size = bufSize
 
         if (blockId.isShuffle == true) {
           val writeMetrics = taskMetrics.shuffleWriteMetrics

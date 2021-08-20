@@ -337,8 +337,7 @@ private[spark] class PmemExternalSorter[K, V, C](
     // which is different from spark original codes (relate to one spill file)
     val pmemBlockInputStream = if (!pmofConf.enableRemotePmem) {
       new LocalPmemBlockInputStream[K, C](
-        pmemBlockOutputStream.getBlockId,
-        pmemBlockOutputStream.getTotalRecords,
+        pmemBlockOutputStream,
         serializer)
     } else {
       new RemotePmemBlockInputStream[K, C](
