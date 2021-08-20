@@ -14,10 +14,10 @@ trait PmemBlockInputStream[K, C] {
 }
 
 class LocalPmemBlockInputStream[K, C](
-    blockId: BlockId,
-    total_records: Long,
+    pmemBlockOutputStream: PmemBlockOutputStream,
     serializer: Serializer)
     extends PmemBlockInputStream[K, C] {
+  val blockId: BlockId = pmemBlockOutputStream.getBlockId()
   val serializerManager: SerializerManager = SparkEnv.get.serializerManager
   val serInstance: SerializerInstance = serializer.newInstance()
   val persistentMemoryWriter: PersistentMemoryHandler =
@@ -27,7 +27,9 @@ class LocalPmemBlockInputStream[K, C](
   var inObjStream: DeserializationStream = serInstance.deserializeStream(wrappedStream)
 
   var indexInBatch: Int = 0
+  var total_records: Long = 0
   var closing: Boolean = false
+  total_records = pmemBlockOutputStream.getTotalRecords()
 
   def readNextItem(): (K, C) = {
     if (closing == true) {

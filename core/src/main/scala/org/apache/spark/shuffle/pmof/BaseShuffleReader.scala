@@ -90,7 +90,7 @@ private[spark] class BaseShuffleReader[K, C](handle: BaseShuffleHandle[K, _, C],
     /**
     *   Force iterator to traverse itself and update internal counter
     **/
-    wrappedStreams.size
+    //wrappedStreams.size
 
     val serializerInstance = dep.serializer.newInstance()
 
