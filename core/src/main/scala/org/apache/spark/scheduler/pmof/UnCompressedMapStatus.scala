@@ -27,7 +27,7 @@ private[spark] class UnCompressedMapStatus(
   val step = 8
 
   def this(loc: BlockManagerId, uncompressedSizes: Array[Long], mapTaskId: Long) = {
-    this(loc, uncompressedSizes.map(MapStatus.compressSize), mapTaskId)
+    this(loc, uncompressedSizes.flatMap(UnCompressedMapStatus.longToBytes), mapTaskId)
   }
 
   override def updateLocation(newLoc: BlockManagerId): Unit = {
