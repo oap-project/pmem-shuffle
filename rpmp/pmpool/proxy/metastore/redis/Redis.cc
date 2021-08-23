@@ -6,6 +6,8 @@
 
 #include <unordered_set>
 #include <sw/redis++/redis++.h>
+#include <sw/redis++/connection.h>
+#include <sw/redis++/connection_pool.h>
 
 // TODO: RPMP proxy process should not be terminated at runtime when cannot connect to Redis for query, etc.
 Redis::Redis(std::shared_ptr<Config> config, std::shared_ptr<RLog> log){
@@ -21,8 +23,15 @@ Redis::Redis(std::shared_ptr<Config> config, std::shared_ptr<RLog> log){
  **/
 bool Redis::connect() {
   // Create an Redis object, which is movable but NOT copyable.
-  string connection_str = "tcp://" + address_ + ":" + port_;
-  redis_ = new sw::redis::Redis(connection_str);
+  sw::redis::ConnectionOptions connection_options;
+  connection_options.host = address_;  // Required.
+  connection_options.port = stoi(port_); // Optional. The default port is 6379.
+
+  sw::redis::ConnectionPoolOptions pool_options;
+  pool_options.size = 5;  // Pool size, i.e. max number of connections.
+
+  //string connection_str = "tcp://" + address_ + ":" + port_;
+  redis_ = new sw::redis::Redis(connection_options, pool_options);
   return true;
 }
 

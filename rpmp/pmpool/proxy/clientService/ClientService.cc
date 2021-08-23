@@ -105,6 +105,58 @@ void ClientService::addRecords(uint64_t key, unordered_set<PhysicalNode, Physica
   metastore_->set(to_string(key), json_str);
 }
 
+std::unordered_set<PhysicalNode, PhysicalNodeHash> ClientService::getNodes(uint64_t key){
+  std::unordered_set<PhysicalNode, PhysicalNodeHash> nodes;
+
+  int retry = 10;
+  int timeout = 1;
+  while(retry > 0){
+    std::string key_str = to_string(key);
+    auto rawJson = metastore_->get(key_str);
+
+    const auto rawJsonLength = static_cast<int>(rawJson.length());
+    JSONCPP_STRING err;
+    Json::Value root;
+    
+    Json::CharReaderBuilder builder;
+    const std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
+    if (!reader->parse(rawJson.c_str(), rawJson.c_str() + rawJsonLength, &root,
+                        &err)) {
+      #ifdef DEBUG
+      std::cout << "key: " << key <<endl;
+      std::cout << "rawJson: " << rawJson.c_str() <<endl;
+      std::cout << "ClientService::Error occurred in getNodes." << std::endl;
+      #endif
+      sleep(timeout);
+      retry--;
+      continue;
+    }else{
+      retry = -1;
+    }
+
+    Json::Value recordArray = root["data"];
+    Json::ArrayIndex length = recordArray.size(); 
+    Json::Value data;
+    
+    for(Json::ArrayIndex i = 0; i < length; i++){
+      if(recordArray[i][STATUS] == VALID){
+        PhysicalNode* node = new PhysicalNode();
+        string ip = recordArray[i][NODE].toStyledString();
+        cout<<"ip: "<<ip<<endl;
+        node->setIp(ip);
+        node->setPort("12346");
+        nodes.insert(*node);
+      }
+    }
+  }
+
+  if(retry == 0){
+    std::cout << "ClientService::Error occurred in getNodes with multiples retrys for key: " << key << std::endl;
+  } 
+
+  return nodes;
+}
+
 void ClientService::enqueue_recv_msg(std::shared_ptr<ProxyRequest> request) {
   worker_->addTask(request);
   // ProxyRequestContext rc = request->get_rc();
@@ -145,6 +197,7 @@ void ClientService::handle_recv_msg(std::shared_ptr<ProxyRequest> request) {
     }
     case GET_REPLICA: {
       auto nodes = proxyServer_->getReplica(rc.key);
+      //auto nodes = getNodes(rc.key);
       rrc.type = rc.type;
       rrc.key = rc.key;
       rrc.success = 0;

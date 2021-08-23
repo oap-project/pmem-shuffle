@@ -101,6 +101,7 @@ public:
      *                    NODE:
      *                    STATUS:
      *                    SIZE:
+     *                   }
      *
      **/
     const string JOB_STATUS = "JOB_STATUS";
@@ -116,6 +117,7 @@ public:
     // std::vector<std::shared_ptr<Worker>> workers_;
     void constructJobStatus(Json::Value record, uint64_t key);
     void addRecords(uint64_t key, unordered_set<PhysicalNode, PhysicalNodeHash> nodes);
+    std::unordered_set<PhysicalNode, PhysicalNodeHash> getNodes(uint64_t key);
 
     std::shared_ptr<Worker> worker_;
     std::shared_ptr<ChunkMgr> chunkMgr_;

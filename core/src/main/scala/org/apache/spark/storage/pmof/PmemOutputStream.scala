@@ -59,6 +59,7 @@ class PmemOutputStream(
         key_id += 1
         flushed_block_id = cur_block_id
         cur_block_id = s"${blockId}_${key_id}"
+        logDebug(s" [PUT Completed]${blockId}-${bufferRemainingSize}, ${NettyByteBufferPool.dump(byteBuffer, bufferRemainingSize)}")
       } else {
         val byteBuffer: ByteBuffer = buf.nioBuffer()
         persistentMemoryWriter.setPartition(
