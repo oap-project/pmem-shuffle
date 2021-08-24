@@ -127,9 +127,6 @@ yum install boost-devel
 git clone https://github.com/oap-project/pmem-shuffle.git
 cd pmem-shuffle
 git submodule update --init --recursive
-git submodule add -b master https://github.com/redis/hiredis.git rpmp/include/hiredis
-git submodule add -b master https://github.com/open-source-parsers/jsoncpp.git rpmp/include/jsoncpp
-git submodule add -b v1.x https://github.com/gabime/spdlog.git rpmp/include/spdlog
 
 cd rpmp 
 mkdir build
