@@ -69,43 +69,57 @@ void ReplicaService::enqueue_recv_msg(std::shared_ptr<ReplicaRequest> request) {
  * Update data status once it's been put to the node successfully
  **/
 void ReplicaService::updateRecord(uint64_t key, PhysicalNode node, uint64_t size){
-  string rawJson = metastore_->get(to_string(key));
-  #ifdef DEBUG
-  cout<<rawJson<<endl;
-  #endif
-  const auto rawJsonLength = static_cast<int>(rawJson.length());
-  JSONCPP_STRING err;
-  Json::Value root;
-  
-  Json::CharReaderBuilder builder;
-  const std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
-  if (!reader->parse(rawJson.c_str(), rawJson.c_str() + rawJsonLength, &root,
-                      &err)) {
-    #ifndef DEBUG
-    std::cout << "key: " << key <<endl;
-    std::cout << "rawJson: " << rawJson.c_str() <<endl;
+  int retry = 10;
+  int timeout = 1;
+  while(retry > 0){
+    std::string key_str = to_string(key);
+    auto rawJson = metastore_->get(key_str);
+    #ifdef DEBUG
+    cout<<rawJson<<endl;
     #endif
-    std::cout << "ReplicaService::Error occurred in UpdateRecord." << std::endl;
-  }
-
-  Json::Value recordArray = root["data"];
-  Json::ArrayIndex length = recordArray.size(); 
-  Json::Value data;
-  
-  for(Json::ArrayIndex i = 0; i < length; i++){
-    data[i][NODE] = recordArray[i][NODE];
-    if(data[i][NODE] == node.getIp()){
-      data[i][STATUS] = VALID;
-      data[i][SIZE] = to_string(size);
+    const auto rawJsonLength = static_cast<int>(rawJson.length());
+    JSONCPP_STRING err;
+    Json::Value root;
+    
+    Json::CharReaderBuilder builder;
+    const std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
+    if (!reader->parse(rawJson.c_str(), rawJson.c_str() + rawJsonLength, &root,
+                        &err)) {
+      #ifdef DEBUG
+      std::cout << "key: " << key <<endl;
+      std::cout << "rawJson: " << rawJson.c_str() <<endl;
+      std::cout << "ReplicaService::Error occurred in UpdateRecord." << std::endl;
+      #endif
+      sleep(timeout);
+      retry--;
+      continue;
     }else{
-      data[i][STATUS] = recordArray[i][STATUS];
-      data[i][SIZE] = to_string(size);
+      retry = -1;
     }
-  }
 
-  root["data"] = data;
-  string json_str = rootToString(root);
-  metastore_->set(to_string(key), json_str);
+    Json::Value recordArray = root["data"];
+    Json::ArrayIndex length = recordArray.size(); 
+    Json::Value data;
+    
+    for(Json::ArrayIndex i = 0; i < length; i++){
+      data[i][NODE] = recordArray[i][NODE];
+      if(data[i][NODE] == node.getIp()){
+        data[i][STATUS] = VALID;
+        data[i][SIZE] = to_string(size);
+      }else{
+        data[i][STATUS] = recordArray[i][STATUS];
+        data[i][SIZE] = to_string(size);
+      }
+    }
+
+    root["data"] = data;
+    string json_str = rootToString(root);
+    metastore_->set(to_string(key), json_str);
+  }
+  if(retry == 0){
+    std::cout << "key: " << key <<endl;
+    std::cout << "ReplicaService::Error occurred in UpdateRecord with multiples retrys." << std::endl;
+  } 
 }
 
 ChunkMgr* ReplicaService::getChunkMgr(){
