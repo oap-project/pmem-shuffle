@@ -25,6 +25,14 @@ class PhysicalNode {
 
    string getPort() { return port; }
 
+   void setIp(string ip){
+      this->ip = ip;
+   }
+
+   void setPort(string port){
+      this->port = port;
+   } 
+
   private:
     string ip;
     string port;

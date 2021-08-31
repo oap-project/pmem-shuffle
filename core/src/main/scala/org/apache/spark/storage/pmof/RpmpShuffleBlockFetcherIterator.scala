@@ -140,14 +140,18 @@ private[spark] final class RpmpShuffleBlockFetcherIterator(
   private[this] var address: BlockManagerId = _
   private[this] var blockInfos: Seq[(BlockId, Long, Int)] = _
   private[this] var iterator: Iterator[(BlockId, Long, Int)] = _
+  private[this] var blocksByAddressSeq: Seq[(BlockManagerId, Seq[(BlockId, Long, Int)])] = _
 
   initialize()
 
   def initialize(): Unit = {
     context.addTaskCompletionListener[Unit](_ => cleanup())
-    blocksByAddressSize = blocksByAddress.size
+
+    blocksByAddressSeq = blocksByAddress.toSeq
+    blocksByAddressSize = blocksByAddressSeq.size
+
     if (blocksByAddressCurrentId < blocksByAddressSize) {
-      val res = blocksByAddress.toSeq(blocksByAddressCurrentId)
+      val res = blocksByAddressSeq(blocksByAddressCurrentId)
       address = res._1
       blockInfos = res._2
       iterator = blockInfos.iterator
@@ -228,7 +232,7 @@ private[spark] final class RpmpShuffleBlockFetcherIterator(
         has_next = false
         return has_next
       }
-      val res = blocksByAddress.toSeq(blocksByAddressCurrentId)
+      val res = blocksByAddressSeq(blocksByAddressCurrentId)
       address = res._1
       blockInfos = res._2
       iterator = blockInfos.iterator

@@ -33,6 +33,8 @@ import org.apache.spark.storage.BlockManager
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
+import java.security.MessageDigest
+
 private[spark] class PmemShuffleWriter[K, V, C](shuffleBlockResolver: PmemShuffleBlockResolver,
                                                 metadataResolver: MetadataResolver,
                                                 blockManager: BlockManager,
@@ -128,22 +130,9 @@ private[spark] class PmemShuffleWriter[K, V, C](shuffleBlockResolver: PmemShuffl
     }
 
     val shuffleServerId = blockManager.shuffleServerId
-    /**
-    if (pmofConf.enableRdma) {
-      val rkey = PmemBlockOutputStreamArray(0).getRkey()
-      metadataResolver.pushPmemBlockInfo(stageId, mapId, pmemBlockInfoMap, rkey)
-      val blockManagerId: BlockManagerId =
-        BlockManagerId(shuffleServerId.executorId, PmofTransferService.shuffleNodesMap(shuffleServerId.host),
-          PmofTransferService.getTransferServiceInstance(pmofConf, blockManager).port, shuffleServerId.topologyInfo)
-      mapStatus = MapStatus(blockManagerId, partitionLengths, mapId)
-    } else {
-      mapStatus = MapStatus(shuffleServerId, partitionLengths, mapId)
-    }
-    **/
 
     if (pmofConf.enableRemotePmem) {
       mapStatus = new UnCompressedMapStatus(shuffleServerId, partitionLengths, mapId)
-      //mapStatus = MapStatus(shuffleServerId, partitionLengths)
     } else if (!pmofConf.enableRdma) {
       mapStatus = MapStatus(shuffleServerId, partitionLengths, mapId)
     } else {
@@ -156,6 +145,12 @@ private[spark] class PmemShuffleWriter[K, V, C](shuffleBlockResolver: PmemShuffl
           shuffleServerId.topologyInfo)
       mapStatus = MapStatus(blockManagerId, partitionLengths, mapId)
     }
+    /**
+    For debug usage
+    logInfo(
+     s" shuffle_${stageId}_${mapId}_0 size is ${partitionLengths(0)}, decompressed size is ${mapStatus
+       .getSizeForBlock(0)}")
+    **/
   }
 
   /** Close this writer, passing along whether the map completed */
@@ -179,5 +174,12 @@ private[spark] class PmemShuffleWriter[K, V, C](shuffleBlockResolver: PmemShuffl
         sorter = null
       }
     }
+  }
+
+  /**
+  *  For debug usage
+  **/
+  def md5(s: String) = {
+    MessageDigest.getInstance("MD5").digest(s.getBytes)
   }
 }
