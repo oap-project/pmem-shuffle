@@ -21,6 +21,8 @@
 #include "pmpool/proxy/metastore/MetastoreFacade.h"
 
 #include "json/json.h"
+#include <thread>
+#include "pmpool/proxy/replicaService/Queue.h"
 
 const string JOB_STATUS = "JOB_STATUS";
 const string NODES = "NODES";
@@ -34,6 +36,12 @@ const string SIZE = "SIZE";
 using moodycamel::BlockingConcurrentQueue;
 
 class ReplicaService;
+
+struct ReplicaRecord{
+  uint64_t key;
+  PhysicalNode node;
+  uint64_t size;
+};
 
 class ReplicaRecvCallback : public Callback {
  public:
@@ -103,12 +111,15 @@ class ReplicaService : public std::enable_shared_from_this<ReplicaService> {
   void wait();
   Connection* getConnection(string node);
   ChunkMgr* getChunkMgr();
+  bool startInternalService();
 
  private:
   void addReplica(uint64_t key, PhysicalNode node);
   std::unordered_set<PhysicalNode, PhysicalNodeHash> getReplica(uint64_t key);
   void removeReplica(uint64_t key);
   void updateRecord(uint64_t key, PhysicalNode node, uint64_t size);
+  void asyncUpdate();
+  void replicaAsyncUpdate();
   std::shared_ptr<ReplicaWorker> worker_;
   std::shared_ptr<ChunkMgr> chunkMgr_;
   std::shared_ptr<Config> config_;
@@ -131,6 +142,8 @@ class ReplicaService : public std::enable_shared_from_this<ReplicaService> {
   std::mutex prrcMtx;
   std::shared_ptr<Proxy> proxyServer_;
   map<string, Connection*> node2Connection;
+  queue<ReplicaRecord> blocking_queue_;
+  queue<ReplicaRecord> replica_blocking_queue_;
 };
 
 #endif  // RPMP_REPLICASERVICE_H
