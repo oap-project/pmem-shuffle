@@ -2,6 +2,7 @@
 
 #include "ReplicaService.h"
 #include "pmpool/proxy/metastore/JsonUtil.h"
+#include <thread>
 
 using namespace std;
 
@@ -54,7 +55,9 @@ int ReplicaWorker::entry() {
 }
 
 ReplicaService::ReplicaService(std::shared_ptr<Config> config, std::shared_ptr<RLog> log, std::shared_ptr<Proxy> proxyServer, std::shared_ptr<MetastoreFacade> metastore) :
- config_(config), log_(log), proxyServer_(proxyServer), metastore_(metastore) {}
+ config_(config), log_(log), proxyServer_(proxyServer), metastore_(metastore) {
+
+ }
 
 ReplicaService::~ReplicaService() {
   worker_->stop();
@@ -63,6 +66,20 @@ ReplicaService::~ReplicaService() {
 
 void ReplicaService::enqueue_recv_msg(std::shared_ptr<ReplicaRequest> request) {
   worker_->addTask(request);
+}
+
+void ReplicaService::asyncUpdate(){
+  while(true){
+    ReplicaRecord record = blocking_queue_.pop();
+    updateRecord(record.key, record.node, record.size);
+  }
+}
+
+void ReplicaService::replicaAsyncUpdate(){
+  while(true){
+    ReplicaRecord record = replica_blocking_queue_.pop();
+    updateRecord(record.key, record.node, record.size);
+  }
 }
 
 /**
@@ -171,7 +188,9 @@ void ReplicaService::handle_recv_msg(std::shared_ptr<ReplicaRequest> request) {
         removeReplica(rc.key);
       }
       addReplica(rc.key, rc.node);
-      updateRecord(rc.key, rc.node, rc.size);
+      ReplicaRecord record = {rc.key, rc.node, rc.size};
+      blocking_queue_.push(record);
+
       unordered_set<PhysicalNode, PhysicalNodeHash> nodes = proxyServer_->getNodes(rc.key);
       if (nodes.count(rc.node)) {
         nodes.erase(rc.node);
@@ -199,13 +218,21 @@ void ReplicaService::handle_recv_msg(std::shared_ptr<ReplicaRequest> request) {
       uint32_t replicaNum = dataReplica_ < proxyServer_->getNodeNum() ? dataReplica_ : proxyServer_->getNodeNum();
       uint32_t minReplica = replicaNum < minReplica_ ? replicaNum : minReplica_;
       addReplica(rc.key, rc.node);
-      updateRecord(rc.key, rc.node, rc.size);
+      ReplicaRecord record = {rc.key, rc.node, rc.size};
+      replica_blocking_queue_.push(record);
       if (getReplica(rc.key).size() == minReplica) {
         proxyServer_->notifyClient(rc.key);
       }
       break;
     }
   }
+}
+
+bool ReplicaService::startInternalService(){
+  std::thread t_metastoreUpdater(&ReplicaService::asyncUpdate, shared_from_this());
+  t_metastoreUpdater.detach();
+  std::thread t_replicaMetastoreUpdater(&ReplicaService::replicaAsyncUpdate, shared_from_this());
+  t_replicaMetastoreUpdater.detach();
 }
 
 bool ReplicaService::startService() {
@@ -237,6 +264,7 @@ bool ReplicaService::startService() {
 
   server_->start();
   server_->listen(config_->get_current_proxy_addr().c_str(), config_->get_replica_service_port().c_str());
+  startInternalService();
   log_->get_console_log()->info("ReplicaService started at {0}:{1}", config_->get_current_proxy_addr(), config_->get_replica_service_port());
   return true;
 }
