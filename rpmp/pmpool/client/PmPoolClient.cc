@@ -75,28 +75,6 @@ void PmPoolClient::begin_tx() {
   tx_finished;
 }
 
-uint64_t PmPoolClient::alloc(uint64_t size) {
-  // RequestContext rc = {};
-  // rc.type = ALLOC;
-  // rc.rid = rid_++;
-  // rc.size = size;
-  // auto request = std::make_shared<Request>(rc);
-  // requestHandler_->addTask(request);
-  // return requestHandler_->get(request).address;
-  return 0;
-}
-
-int PmPoolClient::free(uint64_t address) {
-  // RequestContext rc = {};
-  // rc.type = FREE;
-  // rc.rid = rid_++;
-  // rc.address = address;
-  // auto request = std::make_shared<Request>(rc);
-  // requestHandler_->addTask(request);
-  // return requestHandler_->get(request).success;
-  return 0;
-}
-
 void PmPoolClient::shutdown() {
   map<string, std::shared_ptr<Channel>>::iterator itr;
   for (itr = channels.begin(); itr != channels.end(); ++itr){      
@@ -111,79 +89,6 @@ void PmPoolClient::wait() {
     itr->second->networkClient->wait();
   }
   proxyClient_->wait();
-}
-
-int PmPoolClient::write(uint64_t address, const char *data, uint64_t size) {
-  // RequestContext rc = {};
-  // rc.type = WRITE;
-  // rc.rid = rid_++;
-  // rc.size = size;
-  // rc.address = address;
-  // // allocate memory for RMA read from client.
-  // rc.src_address = networkClient_->get_dram_buffer(data, rc.size);
-  // rc.src_rkey = networkClient_->get_rkey();
-  // auto request = std::make_shared<Request>(rc);
-  // requestHandler_->addTask(request);
-  // auto res = requestHandler_->get(request).success;
-  // networkClient_->reclaim_dram_buffer(rc.src_address, rc.size);
-  return 0;
-}
-
-uint64_t PmPoolClient::write(const char *data, uint64_t size) {
-  // RequestContext rc = {};
-  // rc.type = WRITE;
-  // rc.rid = rid_++;
-  // rc.size = size;
-  // rc.address = 0;
-  // // allocate memory for RMA read from client.
-  // rc.src_address = networkClient_->get_dram_buffer(data, rc.size);
-  // rc.src_rkey = networkClient_->get_rkey();
-  // auto request = std::make_shared<Request>(rc);
-  // requestHandler_->addTask(request);
-  // auto res = requestHandler_->get(request).address;
-  // networkClient_->reclaim_dram_buffer(rc.src_address, rc.size);
-  return 0;
-}
-
-int PmPoolClient::read(uint64_t address, char *data, uint64_t size) {
-  // RequestContext rc = {};
-  // rc.type = READ;
-  // rc.rid = rid_++;
-  // rc.size = size;
-  // rc.address = address;
-  // // allocate memory for RMA read from client.
-  // rc.src_address = networkClient_->get_dram_buffer(nullptr, rc.size);
-  // rc.src_rkey = networkClient_->get_rkey();
-  // auto request = std::make_shared<Request>(rc);
-  // requestHandler_->addTask(request);
-  // auto res = requestHandler_->get(request).success;
-  // if (!res) {
-  //   memcpy(data, reinterpret_cast<char *>(rc.src_address), size);
-  // }
-  // networkClient_->reclaim_dram_buffer(rc.src_address, rc.size);
-  return 0;
-}
-
-int PmPoolClient::read(uint64_t address, char *data, uint64_t size,
-                       std::function<void(int)> func) {
-  // RequestContext rc = {};
-  // rc.type = READ;
-  // rc.rid = rid_++;
-  // rc.size = size;
-  // rc.address = address;
-  // // allocate memory for RMA read from client.
-  // rc.src_address = networkClient_->get_dram_buffer(nullptr, rc.size);
-  // rc.src_rkey = networkClient_->get_rkey();
-  // auto request = std::make_shared<Request>(rc);
-  // requestHandler_->addTask(request, [&] {
-  //   auto res = requestHandler_->get(request).success;
-  //   if (res) {
-  //     memcpy(data, reinterpret_cast<char *>(rc.src_address), size);
-  //   }
-  //   networkClient_->reclaim_dram_buffer(rc.src_address, rc.size);
-  //   func(res);
-  // });
-  return 0;
 }
 
 void PmPoolClient::end_tx() {

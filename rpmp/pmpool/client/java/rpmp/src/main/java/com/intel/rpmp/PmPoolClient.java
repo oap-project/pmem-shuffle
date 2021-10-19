@@ -21,30 +21,6 @@ public class PmPoolClient {
     objectId = nativeOpenPmPoolClient(remote_address, remote_port);
   }
 
-  public long alloc(long size) {
-    return nativeAlloc(size, objectId);
-  }
-
-  public int free(long address) {
-    return nativeFree(address, objectId);
-  }
-
-  public int write(long address, String data, long size) {
-    return nativeWrite(address, data, size, objectId);
-  }
-
-  public long write(String data, long size) {
-    return nativeAllocAndWriteWithString(data, size, objectId);
-  }
-
-  public long write(ByteBuffer data, long size) {
-    return nativeAllocAndWriteWithByteBuffer(data, size, objectId);
-  }
-
-  public int read(long address, long size, ByteBuffer byteBuffer) {
-    return nativeRead(address, size, byteBuffer, objectId);
-  }
-
   public long put(String key, ByteBuffer data, long size) {
     return nativePut(key, data, size, objectId);
   }
@@ -105,16 +81,6 @@ public class PmPoolClient {
 
   private native long nativeOpenPmPoolClient(String remote_address, String remote_port);
 
-  private native long nativeAlloc(long size, long objectId);
-
-  private native int nativeFree(long address, long objectId);
-
-  private native int nativeWrite(long address, String data, long size, long objectId);
-
-  private native long nativeAllocAndWriteWithString(String data, long size, long objectId);
-
-  private native long nativeAllocAndWriteWithByteBuffer(ByteBuffer data, long size, long objectId);
-
   private native long nativePut(String key, ByteBuffer data, long size, long objectId);
 
   private native long nativeGet(String key, long size, ByteBuffer data, long objectId);
@@ -122,8 +88,6 @@ public class PmPoolClient {
   private native long[] nativeGetMeta(String key, long objectId);
 
   private native int nativeRemove(String key, long objectId);
-
-  private native int nativeRead(long address, long size, ByteBuffer byteBuffer, long objectId);
 
   private native void nativeShutdown(long objectId);
 

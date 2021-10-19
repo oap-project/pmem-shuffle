@@ -10,8 +10,11 @@ uint64_t timestamp_now() {
     std::chrono::milliseconds(1);
 }
 
-const int char_size = 1048576;
-
+/**
+ *  One request will put 1024*1024, namely 1MB data to RPMP, the total data put to PRMP = char_size * numReqs, take char_size as 1024 * 1024,
+ *  numReqs as 2048, the total data equals 2GB.
+ **/
+const int char_size = 1024 * 1024;
 char str[char_size];
 int numReqs = 2048;
 
@@ -34,6 +37,10 @@ bool comp(char* str, char* str_read, uint64_t size) {
   return res == 0;
 }
 
+/**
+ * The number of get operations in one thread is ${num_reqs} / ${threads}
+ * 
+ */
 void get(int map_id, int start, int end, std::shared_ptr<PmPoolClient> client) {
   int count = start;
   while (count < end) {
@@ -49,6 +56,10 @@ void get(int map_id, int start, int end, std::shared_ptr<PmPoolClient> client) {
   }
 }
 
+/**
+ * The number of put operations in one thread is ${num_reqs} / ${threads}
+ *  
+ **/
 void put(int map_id, int start, int end, std::shared_ptr<PmPoolClient> client) {
   int count = start;
   while (count < end) {
@@ -98,15 +109,15 @@ int main(int argc, char** argv) {
   std::cout << "start put." << std::endl;
   int start = 0;
   int step = numReqs / threads;
-  std::vector<std::shared_ptr<std::thread>> threads_1;
+  std::vector<std::shared_ptr<std::thread>> put_threads;
   uint64_t begin = timestamp_now();
   for (int i = 0; i < threads; i++) {
     auto t =
       std::make_shared<std::thread>(put, map_id, start, start + step, client);
-    threads_1.push_back(t);
+    put_threads.push_back(t);
     start += step;
   }
-  for (auto thread : threads_1) {
+  for (auto thread : put_threads) {
     thread->join();
   }
   uint64_t end = timestamp_now();
@@ -117,16 +128,16 @@ int main(int argc, char** argv) {
     << "MB/s" << std::endl;
 
   std::cout << "start get." << std::endl;
-  std::vector<std::shared_ptr<std::thread>> threads_2;
+  std::vector<std::shared_ptr<std::thread>> get_threads;
   begin = timestamp_now();
   start = 0;
   for (int i = 0; i < threads; i++) {
     auto t =
       std::make_shared<std::thread>(get, map_id, start, start + step, client);
-    threads_2.push_back(t);
+    get_threads.push_back(t);
     start += step;
   }
-  for (auto thread : threads_2) {
+  for (auto thread : get_threads) {
     thread->join();
   }
   end = timestamp_now();

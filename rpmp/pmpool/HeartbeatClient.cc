@@ -261,6 +261,7 @@ int HeartbeatClient::initHeartbeatClient() {
 }
 
 /**
+ * Build connection to proxy listed on configuration file one by one.
  * For standby proxy, it is impossible to connect to itself since heartbeat listen port is not in service.
  */
 int HeartbeatClient::build_connection() {
@@ -281,7 +282,7 @@ int HeartbeatClient::build_connection() {
 }
 
 /**
- * For standby proxy use, try to connect to all other proxies.
+ * For standby proxy use, try to connect to all other proxies except the input excludedProxy.
  */
 int HeartbeatClient::build_connection_with_exclusion(string excludedProxy) {
   vector<string> proxy_addrs = config_->get_proxy_addrs();
@@ -302,6 +303,8 @@ int HeartbeatClient::build_connection_with_exclusion(string excludedProxy) {
 }
 
 /**
+ * Build connection to proxy specified by input proxy_addr and heartbeat_port.
+ * 
  * Segmentation fault will occur when client_->connect is called consecutively, e.g., client tries to find active
  * proxy by connecting to two proxy servers one by one which are not launched. The segmentation  fault is caused
  * by an HPNL function. Fixed by https://github.com/Intel-bigdata/HPNL/pull/92.

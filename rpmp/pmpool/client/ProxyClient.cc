@@ -200,15 +200,20 @@ int ProxyClient::initProxyClient() {
   return build_connection();
 }
 
+/**
+ *  Try to connect to active proxy one by one based on proxy list configured in config file
+ *  
+ *  Todo: expose max_loops out as configurable variable
+ **/
 int ProxyClient::build_connection() {
   const int MAX_LOOPS = 5;
   int loop = 0;
   while (loop++ < MAX_LOOPS) {
-    for (int i = 0; i < proxy_addrs_.size(); i++) {
-      cout << "Trying to connect to " << proxy_addrs_[i] << ":" << proxy_port_ << endl;
-      auto res = build_connection(proxy_addrs_[i], proxy_port_);
-      if (res == 0) {
-        return 0;
+      for (int i = 0; i < proxy_addrs_.size(); i++) {
+        cout << "Trying to connect to " << proxy_addrs_[i] << ":" << proxy_port_ << endl;
+        auto res = build_connection(proxy_addrs_[i], proxy_port_);
+        if (res == 0) {
+          return 0;
       }
     }
   }
@@ -269,7 +274,7 @@ void ProxyClient::set_active_proxy_shutdown_callback(Callback* activeProxyDiscon
 }
 
 /**
- * Actions to be token when active proxy is unreachable.
+ * Actions to be taken when active proxy is unreachable.
  */
 void ProxyClient::onActiveProxyShutdown() {
   connected_ = false;
@@ -277,7 +282,7 @@ void ProxyClient::onActiveProxyShutdown() {
     proxy_connection_->shutdown();
   }
   if (activeProxyDisconnectedCallback_) {
-    activeProxyDisconnectedCallback_->operator()(nullptr, nullptr);
+    build_connection();
   }
   if (connected_) {
     cout << "Connected to a new active proxy." << endl;
