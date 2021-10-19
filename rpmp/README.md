@@ -184,6 +184,12 @@ rpmp.data.min.replica 2
 
 Set minimal replica and preferred replica.
 
+### Load balance settings
+```
+rpmp.proxy.load-balance-factor 20
+```
+Set number of virtual nodes in consistent hash ring. Try increase it if data distribution is not even. 
+
 ## Launch RPMP cluster
 Change directory to {RPMP-HOME}/build/bin
 - Launch proxy

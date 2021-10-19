@@ -66,30 +66,6 @@ class PmPoolClient {
 
   /// memory pool interface
   void begin_tx();
-  /// Allocate the given size of memory from remote memory pool.
-  /// Return the global address of memory pool.
-  uint64_t alloc(uint64_t size);
-
-  /// Free memory with the global address.
-  /// Address is the global address that returned by alloc.
-  /// Return 0 if succeed, return others value if fail.
-  int free(uint64_t address);
-
-  /// Write data to the address of remote memory pool.
-  /// The size is number of bytes
-  /// Return 0 if succeed, return others value if fail.
-  int write(uint64_t address, const char *data, uint64_t size);
-
-  /// Return global address if succeed, return -1 if fail.
-  uint64_t write(const char *data, uint64_t size);
-
-  /// Read from the global address of remote memory pool and copy to data
-  /// pointer.
-  /// Return 0 if succeed, return others value if fail.
-  int read(uint64_t address, char *data, uint64_t size);
-
-  int read(uint64_t address, char *data, uint64_t size,
-           std::function<void(int)> func);
   void end_tx();
 
   /// key-value storage interface

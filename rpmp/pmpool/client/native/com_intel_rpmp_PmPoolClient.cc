@@ -71,63 +71,6 @@ JNIEXPORT jlong JNICALL Java_com_intel_rpmp_PmPoolClient_nativeOpenPmPoolClient(
   return handler_holder_.Insert(std::move(client));
 }
 
-JNIEXPORT jlong JNICALL Java_com_intel_rpmp_PmPoolClient_nativeAlloc(
-    JNIEnv *env, jobject obj, jlong size, jlong objectId) {
-  auto client = GetClient(env, objectId);
-  client->begin_tx();
-  uint64_t address = client->alloc(size);
-  client->end_tx();
-  return address;
-}
-
-JNIEXPORT jint JNICALL Java_com_intel_rpmp_PmPoolClient_nativeFree(
-    JNIEnv *env, jobject obj, jlong address, jlong objectId) {
-  auto client = GetClient(env, objectId);
-  client->begin_tx();
-  int success = client->free(address);
-  client->end_tx();
-  return success;
-}
-
-JNIEXPORT jint JNICALL Java_com_intel_rpmp_PmPoolClient_nativeWrite(
-    JNIEnv *env, jobject obj, jlong address, jstring data, jlong size,
-    jlong objectId) {
-  const char *raw_data = env->GetStringUTFChars(data, 0);
-
-  auto client = GetClient(env, objectId);
-  client->begin_tx();
-  int success = client->write(address, raw_data, size);
-  client->end_tx();
-
-  env->ReleaseStringUTFChars(data, raw_data);
-
-  return success;
-}
-JNIEXPORT jlong JNICALL
-Java_com_intel_rpmp_PmPoolClient_nativeAllocAndWriteWithString(
-    JNIEnv *env, jobject obj, jstring data, jlong size, jlong objectId) {
-  const char *raw_data = env->GetStringUTFChars(data, 0);
-
-  auto client = GetClient(env, objectId);
-  client->begin_tx();
-  uint64_t address = client->write(raw_data, size);
-  client->end_tx();
-
-  env->ReleaseStringUTFChars(data, raw_data);
-  return address;
-}
-
-JNIEXPORT jlong JNICALL
-Java_com_intel_rpmp_PmPoolClient_nativeAllocateAndWriteWithByteBuffer(
-    JNIEnv *env, jobject obj, jobject data, jlong size, jlong objectId) {
-  char *raw_data = static_cast<char *>((*env).GetDirectBufferAddress(data));
-  auto client = GetClient(env, objectId);
-  client->begin_tx();
-  uint64_t address = client->write(raw_data, size);
-  client->end_tx();
-  return address;
-}
-
 JNIEXPORT jlong JNICALL Java_com_intel_rpmp_PmPoolClient_nativePut(
     JNIEnv *env, jobject obj, jstring key, jobject data, jlong size,
     jlong objectId) {
@@ -189,17 +132,6 @@ JNIEXPORT jint JNICALL Java_com_intel_rpmp_PmPoolClient_nativeRemove(
   client->end_tx();
   env->ReleaseStringUTFChars(key, raw_key);
   return res;
-}
-
-JNIEXPORT jint JNICALL Java_com_intel_rpmp_PmPoolClient_nativeRead(
-    JNIEnv *env, jobject obj, jlong address, jlong size, jobject data,
-    jlong objectId) {
-  char *raw_data = static_cast<char *>((*env).GetDirectBufferAddress(data));
-  auto client = GetClient(env, objectId);
-  client->begin_tx();
-  int success = client->read(address, raw_data, size);
-  client->end_tx();
-  return success;
 }
 
 JNIEXPORT void JNICALL Java_com_intel_rpmp_PmPoolClient_nativeShutdown(
