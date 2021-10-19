@@ -793,12 +793,16 @@ spark.driver.rport                                          61000
 ```
 
 ## <a id="trouble-shooting"></a>8. Trouble shooting
+
+### 8.1 
 For any reason that a previous job is failed, please empty PMem spaces before another run.  
 It's because normal space release operation might fail to be invoked for failed jobs.  
 
 For devdax, use `pmempool rm {devdax-namespace}` to reset the entire namespace.    
 For fsdax, use `rm -rf {mounted-pmem-folder}/shuffle_block*` to remove corresponding shuffle pool files.  
 
+### 8.2 
+If you failed to open file on fsdax or devdax, please make sure current user has root permission. It's required to have root permission to manipulate PMem namespace. 
 
 ### Reference guides (without BKC access)
 -----------------------------------
