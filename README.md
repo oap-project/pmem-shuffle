@@ -804,6 +804,9 @@ For fsdax, use `rm -rf {mounted-pmem-folder}/shuffle_block*` to remove correspon
 ### 8.2 
 If you failed to open file on fsdax or devdax, please make sure current user has root permission. It's required to have root permission to manipulate PMem namespace. 
 
+### 8.3 
+For devdax usage, please invoke `pmempool rm {devdax-namespace}` right after you create devdax namespace. There might be existed pool file that affects PMem Shuffle to create pool file on it. 
+
 ### Reference guides (without BKC access)
 -----------------------------------
 If you do not have BKC access, please following below official guide:
